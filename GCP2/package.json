@@ -1,0 +1,17 @@
+{
+  "name": "aps-inquiry-api",
+  "version": "1.0.0",
+  "description": "APS Consulting - Inquiry Management API (Cloud Run)",
+  "main": "server.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "firebase-admin": "^12.5.0",
+    "cors": "^2.8.5"
+  }
+}

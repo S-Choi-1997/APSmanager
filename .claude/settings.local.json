@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install)",
+      "Bash(npm run dev:*)",
+      "Bash(gcloud functions deploy:*)",
+      "Bash(gcloud services enable:*)",
+      "Bash(gcloud run deploy:*)",
+      "Bash(gcloud logs read:*)",
+      "Bash(gcloud run services logs read:*)",
+      "Bash(curl:*)",
+      "Bash(gcloud config get-value:*)",
+      "Bash(gcloud storage buckets:*)",
+      "Bash(gcloud run services list:*)",
+      "Bash(gcloud run services describe:*)",
+      "Bash(gcloud run services update:*)",
+      "Bash(gcloud run services delete:*)",
+      "Bash(cat:*)",
+      "Bash(firebase apps:sdkconfig:*)",
+      "Bash(gcloud projects:*)",
+      "Bash(gcloud alpha identity providers:*)",
+      "Bash(gcloud alpha iap oauth-brands list:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
