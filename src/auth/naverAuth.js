@@ -138,16 +138,30 @@ export function signInWithNaver() {
 
     // Listen for callback message from popup
     const messageHandler = async (event) => {
+      console.log('Message received from popup:', event);
+      console.log('Event origin:', event.origin);
+      console.log('Window origin:', window.location.origin);
+      console.log('Event data:', event.data);
+
       // Security: Check origin
       if (event.origin !== window.location.origin) {
+        console.warn('Origin mismatch - ignoring message');
         return;
       }
 
       if (event.data.type === 'naver_oauth_callback') {
+        console.log('Naver OAuth callback message received!');
+        clearInterval(checkClosed); // Clear the interval immediately
         window.removeEventListener('message', messageHandler);
+
+        console.log('Closing popup...');
         popup.close();
 
         const { code, state: returnedState, error } = event.data;
+
+        console.log('Code:', code);
+        console.log('State:', returnedState);
+        console.log('Error:', error);
 
         if (error) {
           reject(new Error(error));
@@ -157,6 +171,9 @@ export function signInWithNaver() {
         // Verify state
         const savedState = sessionStorage.getItem('naver_oauth_state');
         sessionStorage.removeItem('naver_oauth_state');
+
+        console.log('Saved state:', savedState);
+        console.log('Returned state:', returnedState);
 
         if (!savedState || savedState !== returnedState) {
           reject(new Error('State mismatch - possible CSRF attack'));
@@ -208,16 +225,19 @@ export function signInWithNaver() {
       }
     };
 
-    window.addEventListener('message', messageHandler);
-
     // Check if popup was closed
-    const checkClosed = setInterval(() => {
+    let checkClosed;
+    checkClosed = setInterval(() => {
+      console.log('Checking if popup is closed...');
       if (popup.closed) {
+        console.error('Popup was closed without receiving callback message!');
         clearInterval(checkClosed);
         window.removeEventListener('message', messageHandler);
         reject(new Error('로그인 팝업이 닫혔습니다.'));
       }
     }, 500);
+
+    window.addEventListener('message', messageHandler);
   });
 }
 
