@@ -45,6 +45,11 @@ export async function apiRequest(endpoint, options = {}, auth) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  // Add X-Provider header for provider-based token verification
+  if (auth && auth.currentUser && auth.currentUser.provider) {
+    headers['X-Provider'] = auth.currentUser.provider;
+  }
+
   const response = await fetch(url, {
     ...options,
     headers,

@@ -102,6 +102,7 @@ export function signInWithGoogle() {
             accessToken: response.access_token,
             // Store ID token for backend authentication
             idToken: await getIdToken(response.access_token),
+            provider: 'google',
           };
 
           persistUser(currentUser);
@@ -192,6 +193,7 @@ export async function restoreSession() {
       ...stored,
       email: tokenInfo.email,
       name: tokenInfo.name || stored.name,
+      provider: 'google',
     };
     notifyAuthListeners(currentUser);
     return currentUser;

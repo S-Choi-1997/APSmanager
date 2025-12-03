@@ -56,7 +56,14 @@
   line-height: 1.6;
 }
 
-.google-login-btn {
+.login-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.google-login-btn,
+.naver-login-btn {
   width: 100%;
   padding: 16px 24px;
   border: 2px solid #e0e0e0;
@@ -73,18 +80,26 @@
   gap: 12px;
 }
 
-.google-login-btn:hover {
+.google-login-btn:hover,
+.naver-login-btn:hover {
   background: #f8f9fa;
   border-color: #1e3c72;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(30, 60, 114, 0.15);
 }
 
-.google-login-btn:active {
+.naver-login-btn:hover {
+  border-color: #03c75a;
+  box-shadow: 0 4px 12px rgba(3, 199, 90, 0.15);
+}
+
+.google-login-btn:active,
+.naver-login-btn:active {
   transform: translateY(0);
 }
 
-.google-icon {
+.google-icon,
+.naver-icon {
   width: 24px;
   height: 24px;
 }
@@ -125,7 +140,8 @@
     font-size: 14px;
   }
 
-  .google-login-btn {
+  .google-login-btn,
+  .naver-login-btn {
     padding: 14px 20px;
     font-size: 15px;
   }

@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
-import { auth, onAuthStateChanged } from './auth/googleAuth';
+import { auth, onAuthStateChanged } from './auth/authManager';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import LoginPage from './components/LoginPage';

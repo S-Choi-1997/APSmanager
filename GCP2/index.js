@@ -36,10 +36,11 @@ app.get("/", (req, res) => {
   res.json({ status: "ok", service: "aps-inquiry-api" });
 });
 
-// Authentication middleware - verifies Google OAuth access token
+// Authentication middleware - verifies OAuth access token based on provider
 const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
+    const provider = req.headers['x-provider'] || 'google'; // Default to google for backward compatibility
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ error: "unauthorized", message: "Missing or invalid authorization header" });
@@ -47,26 +48,70 @@ const authenticate = async (req, res, next) => {
 
     const accessToken = authHeader.split("Bearer ")[1];
 
-    // Verify Google OAuth access token using Google's tokeninfo endpoint
-    const response = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`);
+    let userEmail = null;
+    let userName = null;
+    let userSub = null;
 
-    if (!response.ok) {
-      console.error("Token verification failed:", response.status);
-      return res.status(401).json({ error: "unauthorized", message: "Invalid or expired token" });
-    }
+    // Verify token based on provider
+    if (provider === 'google') {
+      // Verify Google OAuth access token using Google's tokeninfo endpoint
+      const response = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`);
 
-    const tokenInfo = await response.json();
+      if (!response.ok) {
+        console.error("Google token verification failed:", response.status);
+        return res.status(401).json({ error: "unauthorized", message: "Invalid or expired token" });
+      }
 
-    // Check if token has email scope
-    if (!tokenInfo.email) {
-      console.error("Token does not contain email");
-      return res.status(401).json({ error: "unauthorized", message: "Token missing required email scope" });
-    }
+      const tokenInfo = await response.json();
 
-    // Check if email is verified
-    if (tokenInfo.email_verified !== "true" && tokenInfo.email_verified !== true) {
-      console.warn("Email not verified:", tokenInfo.email);
-      return res.status(403).json({ error: "forbidden", message: "Email not verified" });
+      // Check if token has email scope
+      if (!tokenInfo.email) {
+        console.error("Token does not contain email");
+        return res.status(401).json({ error: "unauthorized", message: "Token missing required email scope" });
+      }
+
+      // Check if email is verified
+      if (tokenInfo.email_verified !== "true" && tokenInfo.email_verified !== true) {
+        console.warn("Email not verified:", tokenInfo.email);
+        return res.status(403).json({ error: "forbidden", message: "Email not verified" });
+      }
+
+      userEmail = tokenInfo.email;
+      userName = tokenInfo.name;
+      userSub = tokenInfo.sub;
+    } else if (provider === 'naver') {
+      // Verify Naver OAuth access token using Naver's user info endpoint
+      const response = await fetch('https://openapi.naver.com/v1/nid/me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Naver token verification failed:", response.status);
+        return res.status(401).json({ error: "unauthorized", message: "Invalid or expired token" });
+      }
+
+      const data = await response.json();
+
+      if (data.resultcode !== '00') {
+        console.error("Naver API error:", data.message);
+        return res.status(401).json({ error: "unauthorized", message: "Naver token validation failed" });
+      }
+
+      const profile = data.response;
+
+      if (!profile.email) {
+        console.error("Naver profile does not contain email");
+        return res.status(401).json({ error: "unauthorized", message: "Token missing required email scope" });
+      }
+
+      userEmail = profile.email;
+      userName = profile.name;
+      userSub = profile.id;
+    } else {
+      console.error("Unsupported provider:", provider);
+      return res.status(400).json({ error: "bad_request", message: "Unsupported authentication provider" });
     }
 
     // Check if email is in the whitelist
@@ -77,17 +122,16 @@ const authenticate = async (req, res, next) => {
       return res.status(500).json({ error: "server_config_error", message: "Server configuration error" });
     }
 
-    const userEmail = tokenInfo.email;
-
     if (!allowedEmails.includes(userEmail)) {
-      console.warn(`Access denied for unauthorized email: ${userEmail}`);
+      console.warn(`Access denied for unauthorized email: ${userEmail} (provider: ${provider})`);
       return res.status(403).json({ error: "forbidden", message: "Access denied - unauthorized email" });
     }
 
     req.user = {
-      email: tokenInfo.email,
-      sub: tokenInfo.sub,
-      name: tokenInfo.name,
+      email: userEmail,
+      sub: userSub,
+      name: userName,
+      provider: provider,
     };
 
     next();
