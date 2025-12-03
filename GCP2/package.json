@@ -2,12 +2,12 @@
   "name": "aps-inquiry-api",
   "version": "1.0.0",
   "description": "APS Consulting - Inquiry Management API (Cloud Run)",
-  "main": "server.js",
+  "main": "index.js",
   "engines": {
     "node": "20"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "npx @google-cloud/functions-framework --target=api --port=8080"
   },
   "dependencies": {
     "express": "^4.19.2",

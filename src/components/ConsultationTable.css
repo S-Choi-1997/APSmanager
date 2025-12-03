@@ -51,6 +51,10 @@
   color: #212529;
 }
 
+.select-col {
+  width: 56px;
+}
+
 .number-col {
   width: 72px;
 }
@@ -73,6 +77,10 @@
 
 .action-col {
   width: 120px;
+}
+
+.delete-col {
+  width: 100px;
 }
 
 .number-cell {
@@ -137,7 +145,16 @@
 }
 
 .action-cell {
+  text-align: left;
+}
+
+.select-cell {
   text-align: center;
+}
+
+.select-cell input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
 }
 
 .respond-btn {
@@ -174,6 +191,32 @@
 }
 
 .respond-btn:active {
+  transform: translateY(0);
+}
+
+.delete-cell {
+  text-align: left;
+}
+
+.delete-btn {
+  padding: 8px 16px;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecdd3;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  background-color: #fee2e2;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(185, 28, 28, 0.2);
+}
+
+.delete-btn:active {
   transform: translateY(0);
 }
 

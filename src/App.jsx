@@ -7,11 +7,11 @@ import SearchBar from './components/SearchBar';
 import ConsultationTable from './components/ConsultationTable';
 import ConsultationModal from './components/ConsultationModal';
 import Pagination from './components/Pagination';
-import { fetchInquiries, updateInquiry, fetchAttachmentUrls } from './services/inquiryService';
+import { fetchInquiries, updateInquiry, fetchAttachmentUrls, deleteInquiry } from './services/inquiryService';
 import './App.css';
 
 const ITEMS_PER_PAGE = 10;
-const BASE_TYPES = ['전체', '비자', '체류', '귀화', '비영리', '기업설립', '민원', '기타'];
+const BASE_TYPES = ['전체', '비자', '비영리단체', '기업 인허가', '민원 행정', '기타'];
 
 function App() {
   const [user, setUser] = useState(null);
@@ -26,6 +26,7 @@ function App() {
   const [typeFilter, setTypeFilter] = useState('전체');
   const [attachmentMap, setAttachmentMap] = useState({});
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   const typeFilters = useMemo(() => {
     const dynamic = Array.from(new Set(consultations.map((c) => c.type).filter(Boolean)));
@@ -54,6 +55,7 @@ function App() {
       setFilteredConsultations([]);
       setLoading(false);
       setAttachmentMap({});
+      setSelectedIds(new Set());
       return;
     }
 
@@ -63,9 +65,10 @@ function App() {
         const data = await fetchInquiries(auth);
         setConsultations(data);
         setFilteredConsultations(data);
+        setSelectedIds(new Set());
       } catch (error) {
         console.error('Failed to fetch inquiries:', error);
-        alert('상담 목록을 불러오는 데 실패했습니다: ' + error.message);
+        alert('상담 목록을 불러오지 못했습니다: ' + error.message);
       } finally {
         setLoading(false);
       }
@@ -121,7 +124,7 @@ function App() {
       );
     } catch (error) {
       console.error('Failed to update inquiry:', error);
-      alert('상담 상태 업데이트에 실패했습니다: ' + error.message);
+      alert('상담 상태를 업데이트하지 못했습니다: ' + error.message);
     }
   };
 
@@ -143,7 +146,7 @@ function App() {
       setAttachmentMap((prev) => ({ ...prev, [consultation.id]: urls }));
     } catch (error) {
       console.error('Failed to fetch attachments:', error);
-      alert('첨부파일을 불러오지 못했습니다: ' + error.message);
+      alert('첨부파일을 불러오는 데 실패했습니다: ' + error.message);
     } finally {
       setAttachmentsLoading(false);
     }
@@ -151,6 +154,45 @@ function App() {
 
   const handleCloseModal = () => {
     setSelectedConsultation(null);
+  };
+
+  const handleToggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleDelete = async (id) => {
+    const target = consultations.find((c) => c.id === id);
+    const confirmDelete = window.confirm(
+      target?.name ? `${target.name} 문의를 삭제하시겠습니까?` : '선택한 문의를 삭제하시겠습니까?'
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await deleteInquiry(id, auth);
+      setConsultations((prev) => prev.filter((c) => c.id !== id));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      setAttachmentMap((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setSelectedConsultation((prev) => (prev && prev.id === id ? null : prev));
+    } catch (error) {
+      console.error('Failed to delete inquiry:', error);
+      alert('문의 삭제에 실패했습니다: ' + error.message);
+    }
   };
 
   const uncheckedCount = consultations.filter((c) => !c.check).length;
@@ -178,7 +220,7 @@ function App() {
         <div className="content-container">
           <div className="content-header">
             <div className="header-left">
-              <h2 className="page-title">상담 접수 목록</h2>
+              <h2 className="page-title">문의 목록</h2>
               <div className="stats">
                 <span className="stat-item">
                   <span className="stat-label">전체</span>
@@ -218,11 +260,11 @@ function App() {
           {loading ? (
             <div className="loading-state">
               <div className="loading-spinner"></div>
-              <p>상담 목록을 불러오는 중입니다.</p>
+              <p>문의 목록을 불러오는 중입니다.</p>
             </div>
           ) : filteredConsultations.length === 0 ? (
             <div className="empty-state">
-              <p>조건에 맞는 상담이 없습니다.</p>
+              <p>검색 결과에 해당하는 문의가 없습니다.</p>
             </div>
           ) : (
             <>
@@ -230,6 +272,9 @@ function App() {
                 consultations={currentConsultations}
                 onRowClick={handleRowClick}
                 onRespond={handleRespond}
+                selectedIds={selectedIds}
+                onToggleSelect={handleToggleSelect}
+                onDelete={handleDelete}
               />
 
               {totalPages > 1 && (

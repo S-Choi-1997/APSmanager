@@ -15,7 +15,7 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-function ConsultationTable({ consultations, onRowClick, onRespond }) {
+function ConsultationTable({ consultations, onRowClick, onRespond, selectedIds, onToggleSelect, onDelete }) {
   const formatDate = (date) => {
     if (!date) return '';
     const d = date instanceof Date ? date : new Date(date);
@@ -31,25 +31,39 @@ function ConsultationTable({ consultations, onRowClick, onRespond }) {
     onRespond(id, check);
   };
 
+  const handleCheckbox = (e, id) => {
+    e.stopPropagation();
+    onToggleSelect(id);
+  };
+
+  const handleDelete = (e, id) => {
+    e.stopPropagation();
+    onDelete(id);
+  };
+
   return (
     <div className="consultation-table-wrapper">
       <table className="consultation-table">
         <colgroup>
+          <col className="select-col" />
           <col className="number-col" />
           <col className="type-col" />
           <col className="name-col" />
           <col className="contact-col" />
           <col className="date-col" />
           <col className="action-col" />
+          <col className="delete-col" />
         </colgroup>
         <thead>
           <tr>
+            <th className="select-col"></th>
             <th className="number-col">번호</th>
-            <th className="type-col">분류</th>
-            <th className="name-col">성함</th>
+            <th className="type-col">구분</th>
+            <th className="name-col">이름</th>
             <th className="contact-col">연락처</th>
-            <th className="date-col">일시/시간</th>
+            <th className="date-col">날짜/시간</th>
             <th className="action-col">확인</th>
+            <th className="delete-col">삭제</th>
           </tr>
         </thead>
         <tbody>
@@ -63,6 +77,14 @@ function ConsultationTable({ consultations, onRowClick, onRespond }) {
                 className={`consultation-row ${isUnread ? 'unread' : 'read'}`}
                 onClick={() => onRowClick(consultation)}
               >
+                <td className="select-cell select-col" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds?.has(consultation.id)}
+                    onChange={(e) => handleCheckbox(e, consultation.id)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </td>
                 <td className="number-cell number-col">{consultation.number}</td>
                 <td className="type-cell type-col">
                   <span
@@ -89,7 +111,12 @@ function ConsultationTable({ consultations, onRowClick, onRespond }) {
                     className={`respond-btn ${isUnread ? 'unread' : 'responded'}`}
                     onClick={(e) => handleRespond(e, consultation.id, consultation.check)}
                   >
-                    {isUnread ? '확인' : '확인 취소'}
+                    {isUnread ? '확인' : '확인 완료'}
+                  </button>
+                </td>
+                <td className="delete-cell delete-col">
+                  <button className="delete-btn" onClick={(e) => handleDelete(e, consultation.id)}>
+                    삭제
                   </button>
                 </td>
               </tr>

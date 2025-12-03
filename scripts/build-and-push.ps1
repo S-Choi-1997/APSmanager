@@ -165,9 +165,9 @@ if ($branchExists) {
   Run-Git -Repo $gitRoot -GitArgs @('checkout', '-b', $Branch)
 }
 
-Write-Host "Clearing existing files on $Branch (keeping .git and release/ source)..." -ForegroundColor Cyan
+Write-Host "Clearing existing files on $Branch (keeping .git, .env and release/ source)..." -ForegroundColor Cyan
 Get-ChildItem -Path $gitRoot -Force |
-  Where-Object { $_.Name -notin @('.git', 'release') } |
+  Where-Object { $_.Name -notin @('.git', '.env', 'release') } |
   Remove-Item -Recurse -Force
 
 Write-Host "Copying latest build $OutputName to branch root..." -ForegroundColor Cyan

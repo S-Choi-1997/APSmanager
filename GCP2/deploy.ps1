@@ -30,11 +30,15 @@ if ($missing.Count -gt 0) {
 }
 
 # Build env var string for gcloud
-$envVars = @()
+$envVarFile = [System.IO.Path]::GetTempFileName()
+$envVarLines = @()
 foreach ($item in Get-ChildItem Env: | Where-Object { $_.Name -in 'ALLOWED_ORIGINS','ALLOWED_EMAILS','STORAGE_BUCKET','GCLOUD_PROJECT' }) {
-  if ($item.Value) { $envVars += "$($item.Name)=$($item.Value)" }
+  if ($item.Value) {
+    $clean = $item.Value.Trim('"')
+    $envVarLines += "$($item.Name): $clean"
+  }
 }
-$envVarArg = $envVars -join ','
+Set-Content -Path $envVarFile -Value $envVarLines -Encoding UTF8
 
 Write-Host "Deploying $FunctionName to $Region (runtime: $Runtime)..." -ForegroundColor Cyan
 
@@ -45,7 +49,7 @@ $gcloudArgs = @(
   '--entry-point', $EntryPoint,
   '--trigger-http',
   '--allow-unauthenticated',
-  '--set-env-vars', $envVarArg
+  '--env-vars-file', $envVarFile
 )
 
 Write-Host "Running: gcloud $($gcloudArgs -join ' ')" -ForegroundColor Yellow

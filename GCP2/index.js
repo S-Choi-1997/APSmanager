@@ -327,11 +327,47 @@ app.delete("/inquiries/:id", async (req, res) => {
       return res.status(404).json({ error: "not_found", message: "Inquiry not found" });
     }
 
+    const data = doc.data();
+    const attachments = Array.isArray(data.attachments) ? data.attachments : [];
+
+    // Delete attachments from Cloud Storage (best-effort; continue on individual errors)
+    const attachmentResults = [];
+    for (const attachment of attachments) {
+      const filePath = attachment.path || attachment.filename;
+      if (!filePath) {
+        attachmentResults.push({
+          name: attachment.name,
+          path: null,
+          status: "skipped",
+          reason: "No file path on attachment",
+        });
+        continue;
+      }
+
+      try {
+        await bucket.file(filePath).delete({ ignoreNotFound: true });
+        attachmentResults.push({
+          name: attachment.name || filePath,
+          path: filePath,
+          status: "deleted",
+        });
+      } catch (err) {
+        console.error(`Error deleting attachment ${filePath}:`, err);
+        attachmentResults.push({
+          name: attachment.name || filePath,
+          path: filePath,
+          status: "error",
+          error: err.message,
+        });
+      }
+    }
+
     await docRef.delete();
 
     res.json({
       status: "ok",
-      message: "Inquiry deleted successfully",
+      message: "Inquiry and attachments deleted",
+      attachments: attachmentResults,
     });
   } catch (error) {
     console.error("Error deleting inquiry:", error);

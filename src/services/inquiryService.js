@@ -5,11 +5,9 @@
  */
 const CATEGORY_MAP = {
   visa: '비자',
-  stay: '체류',
-  naturalization: '귀화',
-  nonprofit: '비영리',
-  corporate: '기업설립',
-  civil: '민원',
+  nonprofit: '비영리단체',
+  corporate: '기업 인허가',
+  civil: '민원 행정',
   etc: '기타',
   other: '기타',
 };
