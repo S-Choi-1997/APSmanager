@@ -329,6 +329,11 @@
   object-fit: contain;
   background: #fff;
   border-radius: 8px;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 .side-preview-caption {

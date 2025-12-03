@@ -146,7 +146,7 @@ function ConsultationTable({ consultations, onRowClick, onRespond, selectedIds, 
                       onClick={(e) => handleRespond(e, consultation.id, consultation.check)}
                       title={isUnread ? '확인 시 SMS 자동 발송' : '확인 완료 (문자 발송됨)'}
                     >
-                      {isUnread ? '확인 + 문자' : '완료'}
+                      {isUnread ? '확인문자' : '완료'}
                     </button>
                     <button className="delete-btn" onClick={(e) => handleDelete(e, consultation.id)}>
                       삭제

@@ -60,10 +60,26 @@ function ConsultationModal({ consultation, onClose, onRespond, attachments, atta
     [attachments]
   );
   const [previewIndex, setPreviewIndex] = useState(0);
+  const [preloadedImages, setPreloadedImages] = useState({});
 
   useEffect(() => {
     setPreviewIndex(0);
   }, [imageAttachments.length]);
+
+  // Preload all images
+  useEffect(() => {
+    if (imageAttachments.length === 0) return;
+
+    const loaded = {};
+    imageAttachments.forEach((file) => {
+      const img = new Image();
+      img.src = file.downloadUrl;
+      img.onload = () => {
+        loaded[file.downloadUrl] = true;
+        setPreloadedImages((prev) => ({ ...prev, [file.downloadUrl]: true }));
+      };
+    });
+  }, [imageAttachments]);
 
   const goPrev = () =>
     setPreviewIndex((prev) => (prev - 1 + imageAttachments.length) % imageAttachments.length);
@@ -95,7 +111,7 @@ function ConsultationModal({ consultation, onClose, onRespond, attachments, atta
                   type="button"
                   title={isUnread ? '확인 시 SMS 자동 발송' : '확인 완료 (문자 발송됨)'}
                 >
-                  {isUnread ? '확인 + 문자 발송' : '확인 완료'}
+                  {isUnread ? '확인문자' : '확인 완료'}
                 </button>
               </div>
             </div>

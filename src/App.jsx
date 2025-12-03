@@ -368,7 +368,7 @@ ${consultation.name}님, 안녕하세요.
                     onClick={handleBulkConfirm}
                     disabled={selectedIds.size === 0}
                   >
-                    선택 확인
+                    선택 확인문자
                   </button>
                   <button
                     className="bulk-button danger"
