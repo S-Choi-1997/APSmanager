@@ -109,21 +109,32 @@ export function signInWithNaver() {
     authUrl.searchParams.set('redirect_uri', NAVER_REDIRECT_URI);
     authUrl.searchParams.set('state', state);
 
+    console.log('Naver OAuth URL:', authUrl.toString());
+    console.log('Naver Client ID:', NAVER_CLIENT_ID);
+    console.log('Redirect URI:', NAVER_REDIRECT_URI);
+
     // Open popup
     const width = 500;
     const height = 600;
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
+
+    console.log('Attempting to open popup...');
     const popup = window.open(
       authUrl.toString(),
       'naver_login',
       `width=${width},height=${height},left=${left},top=${top}`
     );
 
+    console.log('Popup result:', popup);
+
     if (!popup) {
+      console.error('Failed to open popup - popup is null');
       reject(new Error('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.'));
       return;
     }
+
+    console.log('Popup opened successfully');
 
     // Listen for callback message from popup
     const messageHandler = async (event) => {

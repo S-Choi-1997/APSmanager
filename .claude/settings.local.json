@@ -28,7 +28,11 @@
       "Bash(mkdir:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add Naver OAuth integration and GitHub Actions deployment\n\n- Add Naver OAuth authentication alongside Google OAuth\n- Create unified auth manager for multiple providers\n- Add Naver callback page for OAuth flow\n- Update backend to support provider-based token verification\n- Add GitHub Actions workflow for automatic deployment\n- Update deployment documentation with CI/CD setup guide\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(powershell.exe -ExecutionPolicy Bypass -File deploy.ps1)"
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File deploy.ps1)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Use backend for Naver OAuth token exchange (resolve CORS & security)\n\n- Add /auth/naver/token endpoint in backend for secure token exchange\n- Remove NAVER_CLIENT_SECRET from frontend (security improvement)\n- Update naverAuth.js to call backend API instead of Naver directly\n- Add Naver env vars to GCP deploy script\n- Fixes CORS error and prevents CLIENT_SECRET exposure\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
