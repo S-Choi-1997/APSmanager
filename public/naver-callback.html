@@ -83,11 +83,12 @@
           return;
         }
 
-        // Close window after short delay
-        console.log('Closing window in 500ms...');
+        // Close window after delay (increased for debugging)
+        console.log('Closing window in 10 seconds...');
+        console.log('CHECK THE LOGS ABOVE!');
         setTimeout(() => {
           window.close();
-        }, 500);
+        }, 10000); // 10 seconds to check logs
       } catch (err) {
         console.error('Callback error:', err);
         document.querySelector('.message').textContent = '오류가 발생했습니다: ' + err.message;
