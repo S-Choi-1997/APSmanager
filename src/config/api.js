@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://inquiryapi-759991718457.us-central1.run.app';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://inquiryapi-mbi34yrklq-uc.a.run.app';
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
   INQUIRY_UPDATE: (id) => `/inquiries/${id}`,
   INQUIRY_DELETE: (id) => `/inquiries/${id}`,
   ATTACHMENTS: (id) => `/inquiries/${id}/attachments/urls`,
+  SMS_SEND: '/sms/send',
 };
 
 /**

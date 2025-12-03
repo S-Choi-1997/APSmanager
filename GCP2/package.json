@@ -12,6 +12,7 @@
   "dependencies": {
     "express": "^4.19.2",
     "firebase-admin": "^12.5.0",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "https-proxy-agent": "^7.0.2"
   }
 }

@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 # Changeable defaults
 $FunctionName = 'inquiryApi'
-$Region = 'asia-northeast3'
+$Region = 'us-central1'
 $Runtime = 'nodejs20'
 $EntryPoint = 'api'
 
@@ -32,7 +32,7 @@ if ($missing.Count -gt 0) {
 # Build env var string for gcloud
 $envVarFile = [System.IO.Path]::GetTempFileName()
 $envVarLines = @()
-foreach ($item in Get-ChildItem Env: | Where-Object { $_.Name -in 'ALLOWED_ORIGINS','ALLOWED_EMAILS','STORAGE_BUCKET','GCLOUD_PROJECT','NAVER_CLIENT_ID','NAVER_CLIENT_SECRET','NAVER_REDIRECT_URI' }) {
+foreach ($item in Get-ChildItem Env: | Where-Object { $_.Name -in 'ALLOWED_ORIGINS','ALLOWED_EMAILS','STORAGE_BUCKET','GCLOUD_PROJECT','NAVER_CLIENT_ID','NAVER_CLIENT_SECRET','NAVER_REDIRECT_URI','ALIGO_API_KEY','ALIGO_USER_ID','ALIGO_SENDER_PHONE','PROXY_URL' }) {
   if ($item.Value) {
     $clean = $item.Value.Trim('"')
     $envVarLines += "$($item.Name): $clean"

@@ -9,6 +9,7 @@ import ConsultationTable from './components/ConsultationTable';
 import ConsultationModal from './components/ConsultationModal';
 import Pagination from './components/Pagination';
 import { fetchInquiries, updateInquiry, fetchAttachmentUrls, deleteInquiry } from './services/inquiryService';
+import { sendSMS } from './services/smsService';
 import './App.css';
 
 const ITEMS_PER_PAGE = 10;
@@ -122,19 +123,70 @@ function App() {
 
   const handleRespond = async (id, check) => {
     try {
-      const newCheckValue = !check;
+      // 이미 확인된 상태면 취소 불가
+      if (check) {
+        alert('이미 확인된 문의입니다. 문자가 발송되었으므로 취소할 수 없습니다.');
+        return;
+      }
 
-      // Update via API
-      await updateInquiry(id, { check: newCheckValue }, auth);
+      const consultation = consultations.find(c => c.id === id);
+      if (!consultation) {
+        throw new Error('문의를 찾을 수 없습니다.');
+      }
 
-      // Update local state
-      setConsultations((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, check: newCheckValue } : c))
-      );
+      // 전화번호 확인
+      if (!consultation.phone) {
+        alert('전화번호가 없어 문자를 보낼 수 없습니다.');
+        return;
+      }
 
-      setSelectedConsultation((prev) =>
-        prev && prev.id === id ? { ...prev, check: newCheckValue } : prev
-      );
+      // 확인 메시지
+      const confirmMessage = `${consultation.name}님께 확인 문자를 발송하시겠습니까?\n\n전화번호: ${consultation.phone}\n\n※ 한 번 확인하면 취소할 수 없습니다.`;
+      if (!window.confirm(confirmMessage)) {
+        return;
+      }
+
+      // 1. 먼저 상태 업데이트
+      await updateInquiry(id, { check: true }, auth);
+
+      // 2. SMS 발송
+      try {
+        const smsMessage = `[APS Consulting]
+
+${consultation.name}님, 안녕하세요.
+
+문의하신 내용이 확인되었습니다.
+담당자가 곧 연락드리겠습니다.
+
+감사합니다.`;
+
+        await sendSMS({
+          receiver: consultation.phone,
+          msg: smsMessage,
+        }, auth);
+
+        // 3. 로컬 상태 업데이트
+        setConsultations((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, check: true } : c))
+        );
+
+        setSelectedConsultation((prev) =>
+          prev && prev.id === id ? { ...prev, check: true } : prev
+        );
+
+        alert('확인 완료 및 문자가 발송되었습니다.');
+      } catch (smsError) {
+        console.error('SMS 발송 실패:', smsError);
+
+        // SMS 실패 시 상태를 되돌림
+        try {
+          await updateInquiry(id, { check: false }, auth);
+          alert('문자 발송에 실패했습니다. 상태가 되돌려졌습니다.\n\n' + smsError.message);
+        } catch (rollbackError) {
+          console.error('상태 롤백 실패:', rollbackError);
+          alert('문자 발송 및 상태 되돌리기에 실패했습니다. 페이지를 새로고침해주세요.');
+        }
+      }
     } catch (error) {
       console.error('Failed to update inquiry:', error);
       alert('상담 상태를 업데이트하지 못했습니다: ' + error.message);

@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const admin = require("firebase-admin");
+const { HttpsProxyAgent } = require("https-proxy-agent");
 
 // Initialize Firebase Admin
 admin.initializeApp({
@@ -520,6 +521,111 @@ app.delete("/inquiries/:id", async (req, res) => {
   } catch (error) {
     console.error("Error deleting inquiry:", error);
     res.status(500).json({ error: "internal_error", message: error.message });
+  }
+});
+
+// POST /sms/send - Send SMS via Aligo API
+app.post("/sms/send", authenticate, async (req, res) => {
+  try {
+    const { receiver, msg, msg_type, title, testmode_yn } = req.body;
+
+    // Validate required fields
+    if (!receiver || !msg) {
+      return res.status(400).json({
+        error: "bad_request",
+        message: "Missing required fields: receiver, msg"
+      });
+    }
+
+    // Validate environment variables
+    const ALIGO_API_KEY = process.env.ALIGO_API_KEY;
+    const ALIGO_USER_ID = process.env.ALIGO_USER_ID;
+    const ALIGO_SENDER = process.env.ALIGO_SENDER_PHONE;
+
+    if (!ALIGO_API_KEY || !ALIGO_USER_ID || !ALIGO_SENDER) {
+      console.error("Aligo SMS credentials not configured");
+      return res.status(500).json({
+        error: "server_config_error",
+        message: "SMS service not configured"
+      });
+    }
+
+    // Prepare form data for Aligo API
+    const formData = new URLSearchParams({
+      key: ALIGO_API_KEY,
+      user_id: ALIGO_USER_ID,
+      sender: ALIGO_SENDER,
+      receiver: receiver, // Can be comma-separated for multiple recipients
+      msg: msg,
+    });
+
+    // Add optional parameters
+    if (msg_type) {
+      formData.append('msg_type', msg_type); // SMS, LMS, or MMS
+    }
+    if (title) {
+      formData.append('title', title); // Title for LMS/MMS
+    }
+    if (testmode_yn) {
+      formData.append('testmode_yn', testmode_yn); // Y for test mode
+    }
+
+    // Call Aligo API through proxy
+    const PROXY_URL = process.env.PROXY_URL;
+    const fetchOptions = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData,
+    };
+
+    // Add proxy agent if PROXY_URL is configured
+    if (PROXY_URL) {
+      fetchOptions.agent = new HttpsProxyAgent(PROXY_URL);
+      console.log(`Using proxy: ${PROXY_URL}`);
+    }
+
+    const aligoResponse = await fetch('https://apis.aligo.in/send/', fetchOptions);
+
+    if (!aligoResponse.ok) {
+      const errorText = await aligoResponse.text();
+      console.error("Aligo API request failed:", errorText);
+      return res.status(500).json({
+        error: "sms_provider_error",
+        message: "Failed to send SMS"
+      });
+    }
+
+    const aligoResult = await aligoResponse.json();
+
+    // Check Aligo API result
+    if (aligoResult.result_code < 0) {
+      console.error("Aligo API error:", aligoResult.message);
+      return res.status(500).json({
+        error: "sms_failed",
+        message: aligoResult.message || "SMS send failed"
+      });
+    }
+
+    // Log SMS send activity
+    console.log(`SMS sent by ${req.user.email}: ${aligoResult.success_cnt} success, ${aligoResult.error_cnt} failed`);
+
+    res.json({
+      status: "ok",
+      data: {
+        msg_id: aligoResult.msg_id,
+        success_cnt: aligoResult.success_cnt,
+        error_cnt: aligoResult.error_cnt,
+        msg_type: aligoResult.msg_type,
+      },
+    });
+  } catch (error) {
+    console.error("SMS send error:", error);
+    return res.status(500).json({
+      error: "internal_error",
+      message: error.message
+    });
   }
 });
 
