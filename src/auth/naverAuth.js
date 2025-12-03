@@ -247,7 +247,8 @@ export function onAuthStateChanged(callback) {
 }
 
 /**
- * Restore session from localStorage (validates token; clears on failure)
+ * Restore session from localStorage
+ * Token validation will happen on actual API calls
  */
 export async function restoreSession() {
   const stored = loadPersistedUser();
@@ -255,42 +256,15 @@ export async function restoreSession() {
     return null;
   }
 
-  try {
-    // Validate token by calling Naver API
-    const res = await fetch('https://openapi.naver.com/v1/nid/me', {
-      headers: {
-        Authorization: `Bearer ${stored.accessToken}`,
-      },
-    });
+  // Restore user from localStorage without validation
+  // If token is expired, it will fail on actual API calls
+  currentUser = {
+    ...stored,
+    provider: 'naver',
+  };
 
-    if (!res.ok) {
-      throw new Error('Invalid or expired token');
-    }
-
-    const data = await res.json();
-
-    if (data.resultcode !== '00') {
-      throw new Error('Token validation failed');
-    }
-
-    const profile = data.response;
-
-    currentUser = {
-      ...stored,
-      email: profile.email,
-      name: profile.name || stored.name,
-      provider: 'naver',
-    };
-
-    notifyAuthListeners(currentUser);
-    return currentUser;
-  } catch (err) {
-    console.warn('Session restore failed, clearing cached session', err);
-    clearPersistedUser();
-    currentUser = null;
-    notifyAuthListeners(null);
-    return null;
-  }
+  notifyAuthListeners(currentUser);
+  return currentUser;
 }
 
 // Export auth object that mimics Firebase Auth API for easier migration

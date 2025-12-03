@@ -171,7 +171,8 @@ export function onAuthStateChanged(callback) {
 }
 
 /**
- * Restore session from localStorage (validates tokeninfo; clears on failure)
+ * Restore session from localStorage
+ * Token validation will happen on actual API calls
  */
 export async function restoreSession() {
   const stored = loadPersistedUser();
@@ -179,31 +180,15 @@ export async function restoreSession() {
     return null;
   }
 
-  try {
-    const res = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${stored.accessToken}`);
-    if (!res.ok) {
-      throw new Error('Invalid or expired token');
-    }
-    const tokenInfo = await res.json();
-    if (!tokenInfo.email) {
-      throw new Error('Token missing email scope');
-    }
+  // Restore user from localStorage without validation
+  // If token is expired, it will fail on actual API calls
+  currentUser = {
+    ...stored,
+    provider: 'google',
+  };
 
-    currentUser = {
-      ...stored,
-      email: tokenInfo.email,
-      name: tokenInfo.name || stored.name,
-      provider: 'google',
-    };
-    notifyAuthListeners(currentUser);
-    return currentUser;
-  } catch (err) {
-    console.warn('Session restore failed, clearing cached session', err);
-    clearPersistedUser();
-    currentUser = null;
-    notifyAuthListeners(null);
-    return null;
-  }
+  notifyAuthListeners(currentUser);
+  return currentUser;
 }
 
 // Export auth object that mimics Firebase Auth API for easier migration
