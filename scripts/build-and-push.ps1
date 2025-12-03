@@ -12,8 +12,13 @@
 # region Setup
 $ErrorActionPreference = 'Stop'
 
-$Repo = "E:\Projects\APS\APSmanager"
+$Repo = Resolve-Path "E:\Projects\APS\APSmanager"
 
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+  throw 'git is not available in PATH'
+}
+
+$originalBranch = (git -C $Repo rev-parse --abbrev-ref HEAD).Trim()
 $status = git -C $Repo status --porcelain
 
 if ($status) {
@@ -22,11 +27,6 @@ if ($status) {
   git -C $Repo commit -m "[auto] commit before build"
 } else {
   Write-Host "변경사항 없음."
-}
-
-git -C $Repo checkout main
-if ($LASTEXITCODE -ne 0) {
-  throw "git checkout main failed"
 }
 
 function Get-GitRoot {
@@ -78,6 +78,11 @@ if (-not $TargetRepoPath) {
   throw 'TargetRepoPath is not set. Pass -TargetRepoPath or set env:BUILD_TARGET_REPO or adjust $DefaultTargetRepoPath.'
 }
 
+if (-not (Test-Path $TargetRepoPath)) {
+  Write-Host "TargetRepoPath not found. Creating: $TargetRepoPath" -ForegroundColor Yellow
+  New-Item -ItemType Directory -Path $TargetRepoPath -Force | Out-Null
+}
+
 function Run-Git {
   param(
     [string]$Repo,
@@ -93,28 +98,6 @@ function Run-Git {
     $joined = $GitArgs -join ' '
     throw "git failed (git -C $Repo $joined) with exit code $LASTEXITCODE"
   }
-}
-
-function Get-RelativePath {
-  param(
-    [string]$BasePath,
-    [string]$TargetPath
-  )
-  $baseResolved = (Resolve-Path $BasePath).ProviderPath
-  $targetResolved = (Resolve-Path $TargetPath).ProviderPath
-  $baseUri = [Uri]("$baseResolved" + [System.IO.Path]::DirectorySeparatorChar)
-  $targetUri = [Uri]$targetResolved
-  $relativeUri = $baseUri.MakeRelativeUri($targetUri)
-  return [Uri]::UnescapeDataString($relativeUri.ToString()) -replace '/', [System.IO.Path]::DirectorySeparatorChar
-}
-
-if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-  throw 'git is not available in PATH'
-}
-
-if (-not (Test-Path $TargetRepoPath)) {
-  Write-Host "TargetRepoPath not found. Creating: $TargetRepoPath" -ForegroundColor Yellow
-  New-Item -ItemType Directory -Path $TargetRepoPath -Force | Out-Null
 }
 
 $gitRoot = Get-GitRoot -Path $TargetRepoPath
@@ -144,14 +127,9 @@ if (-not $Branch) {
 $distPath = Join-Path $SourceRepoPath 'dist'
 $stagingRoot = Join-Path $SourceRepoPath 'release'
 $stagingPath = Join-Path $stagingRoot $OutputName
-$targetOutputPath = Join-Path $TargetRepoPath $OutputName
 
 if (Test-Path $stagingPath) {
   throw "Staging path already exists: $stagingPath (choose another OutputName or remove it)"
-}
-
-if (Test-Path $targetOutputPath) {
-  throw "Target output path already exists in target repo: $targetOutputPath"
 }
 
 if (-not $SkipInstall -and -not (Test-Path (Join-Path $SourceRepoPath 'node_modules'))) {
@@ -174,9 +152,6 @@ Write-Host "Staging build to $stagingPath" -ForegroundColor Cyan
 New-Item -ItemType Directory -Path $stagingPath -Force | Out-Null
 Copy-Item -Path (Join-Path $distPath '*') -Destination $stagingPath -Recurse
 
-Write-Host "Copying build to target repo: $targetOutputPath" -ForegroundColor Cyan
-Copy-Item -Path $stagingPath -Destination $targetOutputPath -Recurse
-
 Write-Host "Ensuring branch $Branch exists..." -ForegroundColor Cyan
 $branchExists = $true
 try {
@@ -190,9 +165,15 @@ if ($branchExists) {
   Run-Git -Repo $gitRoot -GitArgs @('checkout', '-b', $Branch)
 }
 
-Write-Host "Adding build folder $OutputName to git..." -ForegroundColor Cyan
-$relativeAdd = Get-RelativePath -BasePath $gitRoot -TargetPath (Resolve-Path $targetOutputPath)
-Run-Git -Repo $gitRoot -GitArgs @('add', $relativeAdd)
+Write-Host "Clearing existing files on $Branch (keeping .git and release/ source)..." -ForegroundColor Cyan
+Get-ChildItem -Path $gitRoot -Force |
+  Where-Object { $_.Name -notin @('.git', 'release') } |
+  Remove-Item -Recurse -Force
+
+Write-Host "Copying latest build $OutputName to branch root..." -ForegroundColor Cyan
+Copy-Item -Path (Join-Path $stagingPath '*') -Destination $gitRoot -Recurse -Force
+
+Run-Git -Repo $gitRoot -GitArgs @('add', '--all')
 
 try {
   Run-Git -Repo $gitRoot -GitArgs @('commit', '-m', $CommitMessage)
@@ -202,5 +183,10 @@ try {
 
 Write-Host "Pushing to origin/$Branch..." -ForegroundColor Cyan
 Run-Git -Repo $gitRoot -GitArgs @('push', 'origin', $Branch)
+
+if ($originalBranch -and $originalBranch -ne $Branch) {
+  Write-Host "Switching back to $originalBranch..." -ForegroundColor Cyan
+  Run-Git -Repo $gitRoot -GitArgs @('checkout', $originalBranch)
+}
 
 Write-Host 'Done.' -ForegroundColor Green 
