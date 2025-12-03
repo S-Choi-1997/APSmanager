@@ -70,6 +70,17 @@ function App() {
         setSelectedIds(new Set());
       } catch (error) {
         console.error('Failed to fetch inquiries:', error);
+
+        // Check if it's an unauthorized email error (403)
+        if (error.message.includes('Access denied') ||
+            error.message.includes('unauthorized email') ||
+            error.message.includes('forbidden')) {
+          setLoading(false);
+          setShowUnauthorized(true);
+          auth.signOut(); // Clear session
+          return; // Don't show alert
+        }
+
         alert('상담 목록을 불러오지 못했습니다: ' + error.message);
       } finally {
         setLoading(false);
