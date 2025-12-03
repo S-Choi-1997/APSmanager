@@ -3,6 +3,7 @@ import { auth, onAuthStateChanged } from './auth/authManager';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import LoginPage from './components/LoginPage';
+import UnauthorizedPage from './components/UnauthorizedPage';
 import SearchBar from './components/SearchBar';
 import ConsultationTable from './components/ConsultationTable';
 import ConsultationModal from './components/ConsultationModal';
@@ -16,6 +17,7 @@ const BASE_TYPES = ['전체', '비자', '비영리단체', '기업 인허가', '
 function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [showUnauthorized, setShowUnauthorized] = useState(false);
   const [consultations, setConsultations] = useState([]);
   const [filteredConsultations, setFilteredConsultations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -261,8 +263,17 @@ function App() {
     );
   }
 
+  if (showUnauthorized) {
+    return <UnauthorizedPage onBackToLogin={() => setShowUnauthorized(false)} />;
+  }
+
   if (!user) {
-    return <LoginPage onLoginSuccess={setUser} />;
+    return (
+      <LoginPage
+        onLoginSuccess={setUser}
+        onUnauthorized={() => setShowUnauthorized(true)}
+      />
+    );
   }
 
   return (

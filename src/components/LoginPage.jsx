@@ -2,7 +2,7 @@
 import { initializeAuth, signInWithGoogle, signInWithNaver } from '../auth/authManager';
 import './LoginPage.css';
 
-function LoginPage({ onLoginSuccess }) {
+function LoginPage({ onLoginSuccess, onUnauthorized }) {
   useEffect(() => {
     // Initialize both Google and Naver auth when component mounts
     initializeAuth().catch((error) => {
@@ -18,6 +18,16 @@ function LoginPage({ onLoginSuccess }) {
       onLoginSuccess(user);
     } catch (error) {
       console.error('Google 로그인 실패:', error);
+
+      // Check if it's an unauthorized email error
+      if (error.message.includes('Access denied') ||
+          error.message.includes('unauthorized email') ||
+          error.message.includes('forbidden')) {
+        if (onUnauthorized) {
+          onUnauthorized();
+          return;
+        }
+      }
 
       let errorMessage = 'Google 로그인에 실패했습니다.\n\n';
 
@@ -40,6 +50,16 @@ function LoginPage({ onLoginSuccess }) {
       onLoginSuccess(user);
     } catch (error) {
       console.error('Naver 로그인 실패:', error);
+
+      // Check if it's an unauthorized email error
+      if (error.message.includes('Access denied') ||
+          error.message.includes('unauthorized email') ||
+          error.message.includes('forbidden')) {
+        if (onUnauthorized) {
+          onUnauthorized();
+          return;
+        }
+      }
 
       let errorMessage = 'Naver 로그인에 실패했습니다.\n\n';
 
