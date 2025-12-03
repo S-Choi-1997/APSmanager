@@ -45,6 +45,12 @@
   <script>
     (function() {
       try {
+        console.log('=== Naver Callback Page Loaded ===');
+        console.log('URL:', window.location.href);
+        console.log('Origin:', window.location.origin);
+        console.log('window.opener:', window.opener);
+        console.log('window.opener is null?', window.opener === null);
+
         // Parse URL parameters
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
@@ -52,20 +58,33 @@
         const error = params.get('error');
         const errorDescription = params.get('error_description');
 
+        console.log('Parsed params:', { code, state, error, errorDescription });
+
         // Send message to opener window
         if (window.opener) {
-          window.opener.postMessage({
+          console.log('Sending message to opener...');
+          const message = {
             type: 'naver_oauth_callback',
             code: code,
             state: state,
             error: error || errorDescription || null
-          }, window.location.origin);
+          };
+          console.log('Message:', message);
+          console.log('Target origin:', window.location.origin);
+
+          window.opener.postMessage(message, window.location.origin);
+          console.log('Message sent successfully');
         } else {
           console.error('No opener window found');
+          console.log('This might be opened in a new tab instead of a popup');
           document.querySelector('.message').textContent = '로그인 창을 찾을 수 없습니다. 다시 시도해주세요.';
+
+          // Don't close if no opener - for debugging
+          return;
         }
 
         // Close window after short delay
+        console.log('Closing window in 500ms...');
         setTimeout(() => {
           window.close();
         }, 500);
