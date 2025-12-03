@@ -1,11 +1,12 @@
 // Naver OAuth Configuration
 
 /**
- * Naver OAuth Client ID and Secret from Naver Developers
+ * Naver OAuth Client ID from Naver Developers
  * Get this from: https://developers.naver.com/apps
+ * Note: CLIENT_SECRET is NOT exposed to frontend - handled by backend
  */
 const NAVER_CLIENT_ID = import.meta.env.VITE_NAVER_CLIENT_ID || '';
-const NAVER_CLIENT_SECRET = import.meta.env.VITE_NAVER_CLIENT_SECRET || '';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://inquiryapi-759991718457.us-central1.run.app';
 
 // Auto-detect redirect URI based on environment
 // Development: http://localhost:5173/naver-callback.html
@@ -75,10 +76,6 @@ export function initializeNaverAuth() {
   return new Promise((resolve, reject) => {
     if (!NAVER_CLIENT_ID) {
       reject(new Error('VITE_NAVER_CLIENT_ID environment variable is not set'));
-      return;
-    }
-    if (!NAVER_CLIENT_SECRET) {
-      reject(new Error('VITE_NAVER_CLIENT_SECRET environment variable is not set'));
       return;
     }
     resolve();
@@ -156,57 +153,38 @@ export function signInWithNaver() {
         }
 
         try {
-          // Exchange code for access token
-          const tokenResponse = await fetch('https://nid.naver.com/oauth2.0/token', {
+          // Exchange code for access token via backend (secure - no CLIENT_SECRET exposed)
+          const tokenResponse = await fetch(`${API_BASE_URL}/auth/naver/token`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
+              'Content-Type': 'application/json',
             },
-            body: new URLSearchParams({
-              grant_type: 'authorization_code',
-              client_id: NAVER_CLIENT_ID,
-              client_secret: NAVER_CLIENT_SECRET,
+            body: JSON.stringify({
               code: code,
               state: returnedState,
             }),
           });
 
           if (!tokenResponse.ok) {
-            throw new Error('Failed to get access token');
+            const errorData = await tokenResponse.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to exchange code for token');
           }
 
-          const tokenData = await tokenResponse.json();
+          const responseData = await tokenResponse.json();
 
-          if (tokenData.error) {
-            throw new Error(tokenData.error_description || tokenData.error);
+          if (responseData.error) {
+            throw new Error(responseData.message || responseData.error);
           }
 
-          // Get user info using access token
-          const userInfoResponse = await fetch('https://openapi.naver.com/v1/nid/me', {
-            headers: {
-              Authorization: `Bearer ${tokenData.access_token}`,
-            },
-          });
-
-          if (!userInfoResponse.ok) {
-            throw new Error('Failed to get user info');
-          }
-
-          const userInfoData = await userInfoResponse.json();
-
-          if (userInfoData.resultcode !== '00') {
-            throw new Error(userInfoData.message || 'Failed to get user info');
-          }
-
-          const profile = userInfoData.response;
+          const { user, accessToken, refreshToken } = responseData;
 
           currentUser = {
-            email: profile.email,
-            name: profile.name,
-            picture: profile.profile_image,
-            accessToken: tokenData.access_token,
-            refreshToken: tokenData.refresh_token,
-            idToken: tokenData.access_token, // Use access token as ID token for consistency
+            email: user.email,
+            name: user.name,
+            picture: user.picture,
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            idToken: accessToken, // Use access token as ID token for consistency
             provider: 'naver',
           };
 

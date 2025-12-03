@@ -36,6 +36,110 @@ app.get("/", (req, res) => {
   res.json({ status: "ok", service: "aps-inquiry-api" });
 });
 
+// Naver OAuth token exchange endpoint (no auth required - validates during exchange)
+app.post("/auth/naver/token", async (req, res) => {
+  try {
+    const { code, state } = req.body;
+
+    if (!code || !state) {
+      return res.status(400).json({ error: "bad_request", message: "Missing code or state" });
+    }
+
+    const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
+    const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
+    const NAVER_REDIRECT_URI = process.env.NAVER_REDIRECT_URI;
+
+    if (!NAVER_CLIENT_ID || !NAVER_CLIENT_SECRET) {
+      console.error("Naver OAuth credentials not configured");
+      return res.status(500).json({ error: "server_config_error", message: "Naver OAuth not configured" });
+    }
+
+    // Exchange code for access token
+    const tokenResponse = await fetch('https://nid.naver.com/oauth2.0/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: NAVER_CLIENT_ID,
+        client_secret: NAVER_CLIENT_SECRET,
+        code: code,
+        state: state,
+        redirect_uri: NAVER_REDIRECT_URI,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error("Naver token exchange failed:", errorText);
+      return res.status(401).json({ error: "unauthorized", message: "Failed to exchange code for token" });
+    }
+
+    const tokenData = await tokenResponse.json();
+
+    if (tokenData.error) {
+      console.error("Naver token error:", tokenData.error_description);
+      return res.status(401).json({ error: "unauthorized", message: tokenData.error_description || tokenData.error });
+    }
+
+    // Get user info using access token
+    const userInfoResponse = await fetch('https://openapi.naver.com/v1/nid/me', {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+      },
+    });
+
+    if (!userInfoResponse.ok) {
+      console.error("Failed to get Naver user info");
+      return res.status(401).json({ error: "unauthorized", message: "Failed to get user info" });
+    }
+
+    const userInfoData = await userInfoResponse.json();
+
+    if (userInfoData.resultcode !== '00') {
+      console.error("Naver user info error:", userInfoData.message);
+      return res.status(401).json({ error: "unauthorized", message: userInfoData.message || 'Failed to get user info' });
+    }
+
+    const profile = userInfoData.response;
+
+    if (!profile.email) {
+      console.error("Naver profile does not contain email");
+      return res.status(401).json({ error: "unauthorized", message: "Email not provided by Naver" });
+    }
+
+    // Check if email is in the whitelist
+    const allowedEmails = (process.env.ALLOWED_EMAILS || "").split(",").map(e => e.trim()).filter(Boolean);
+
+    if (allowedEmails.length === 0) {
+      console.error("ALLOWED_EMAILS environment variable is not set");
+      return res.status(500).json({ error: "server_config_error", message: "Server configuration error" });
+    }
+
+    if (!allowedEmails.includes(profile.email)) {
+      console.warn(`Access denied for unauthorized Naver email: ${profile.email}`);
+      return res.status(403).json({ error: "forbidden", message: "Access denied - unauthorized email" });
+    }
+
+    // Return user info and tokens
+    res.json({
+      status: "ok",
+      user: {
+        email: profile.email,
+        name: profile.name,
+        picture: profile.profile_image,
+        provider: 'naver',
+      },
+      accessToken: tokenData.access_token,
+      refreshToken: tokenData.refresh_token,
+    });
+  } catch (error) {
+    console.error("Naver token exchange error:", error);
+    return res.status(500).json({ error: "internal_error", message: error.message });
+  }
+});
+
 // Authentication middleware - verifies OAuth access token based on provider
 const authenticate = async (req, res, next) => {
   try {

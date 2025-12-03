@@ -27,7 +27,8 @@
       "Bash(ls:*)",
       "Bash(mkdir:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add Naver OAuth integration and GitHub Actions deployment\n\n- Add Naver OAuth authentication alongside Google OAuth\n- Create unified auth manager for multiple providers\n- Add Naver callback page for OAuth flow\n- Update backend to support provider-based token verification\n- Add GitHub Actions workflow for automatic deployment\n- Update deployment documentation with CI/CD setup guide\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add Naver OAuth integration and GitHub Actions deployment\n\n- Add Naver OAuth authentication alongside Google OAuth\n- Create unified auth manager for multiple providers\n- Add Naver callback page for OAuth flow\n- Update backend to support provider-based token verification\n- Add GitHub Actions workflow for automatic deployment\n- Update deployment documentation with CI/CD setup guide\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File deploy.ps1)"
     ],
     "deny": [],
     "ask": []
