@@ -1,10 +1,12 @@
-﻿import { signOut } from '../auth/googleAuth';
+﻿import { signOut } from '../auth/authManager';
 import './Header.css';
 
 function Header({ user }) {
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await signOut();
+      signOut();
+      // authManager's onAuthStateChanged will automatically update the user state
+      // which will redirect to LoginPage
     } catch (error) {
       console.error('로그아웃 실패:', error);
     }
