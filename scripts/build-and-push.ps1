@@ -166,9 +166,22 @@ if ($branchExists) {
 }
 
 Write-Host "Clearing existing files on $Branch (keeping .git, .env and release/ source)..." -ForegroundColor Cyan
+
+# Safeguard .env during cleanup
+$envBackup = $null
+$envPath = Join-Path $gitRoot '.env'
+if (Test-Path $envPath) {
+  $envBackup = Get-Content $envPath -Raw
+}
+
 Get-ChildItem -Path $gitRoot -Force |
   Where-Object { $_.Name -notin @('.git', '.env', 'release') } |
   Remove-Item -Recurse -Force
+
+# Restore .env if it was removed during cleanup
+if ($envBackup -and -not (Test-Path $envPath)) {
+  Set-Content -Path $envPath -Value $envBackup -Encoding UTF8
+}
 
 Write-Host "Copying latest build $OutputName to branch root..." -ForegroundColor Cyan
 Copy-Item -Path (Join-Path $stagingPath '*') -Destination $gitRoot -Recurse -Force

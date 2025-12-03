@@ -156,6 +156,20 @@ function App() {
     setSelectedConsultation(null);
   };
 
+  const handleSelectAll = (pageItems, checked) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      pageItems.forEach((item) => {
+        if (checked) {
+          next.add(item.id);
+        } else {
+          next.delete(item.id);
+        }
+      });
+      return next;
+    });
+  };
+
   const handleToggleSelect = (id) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -192,6 +206,45 @@ function App() {
     } catch (error) {
       console.error('Failed to delete inquiry:', error);
       alert('문의 삭제에 실패했습니다: ' + error.message);
+    }
+  };
+
+  const handleBulkConfirm = async () => {
+    if (selectedIds.size === 0) return;
+    try {
+      await Promise.all(
+        Array.from(selectedIds).map((id) => updateInquiry(id, { check: true }, auth))
+      );
+      setConsultations((prev) =>
+        prev.map((c) => (selectedIds.has(c.id) ? { ...c, check: true } : c))
+      );
+      setSelectedConsultation((prev) => (prev && selectedIds.has(prev.id) ? { ...prev, check: true } : prev));
+    } catch (error) {
+      console.error('Failed to bulk update inquiries:', error);
+      alert('선택한 문의 확인 처리에 실패했습니다: ' + error.message);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const confirmDelete = window.confirm(`${selectedIds.size}건의 문의를 삭제하시겠습니까?`);
+    if (!confirmDelete) return;
+
+    try {
+      await Promise.all(Array.from(selectedIds).map((id) => deleteInquiry(id, auth)));
+      setConsultations((prev) => prev.filter((c) => !selectedIds.has(c.id)));
+      setAttachmentMap((prev) => {
+        const next = { ...prev };
+        Array.from(selectedIds).forEach((id) => {
+          delete next[id];
+        });
+        return next;
+      });
+      setSelectedConsultation((prev) => (prev && selectedIds.has(prev.id) ? null : prev));
+      setSelectedIds(new Set());
+    } catch (error) {
+      console.error('Failed to bulk delete inquiries:', error);
+      alert('선택한 문의 삭제에 실패했습니다: ' + error.message);
     }
   };
 
@@ -235,6 +288,22 @@ function App() {
             </div>
             <div className="header-actions">
               <div className="filter-row">
+                <div className="bulk-actions">
+                  <button
+                    className="bulk-button"
+                    onClick={handleBulkConfirm}
+                    disabled={selectedIds.size === 0}
+                  >
+                    선택 확인
+                  </button>
+                  <button
+                    className="bulk-button danger"
+                    onClick={handleBulkDelete}
+                    disabled={selectedIds.size === 0}
+                  >
+                    선택 삭제
+                  </button>
+                </div>
                 <button
                   className={`pill-button ${showUnreadOnly ? 'active' : ''}`}
                   onClick={() => setShowUnreadOnly((prev) => !prev)}
@@ -274,6 +343,7 @@ function App() {
                 onRespond={handleRespond}
                 selectedIds={selectedIds}
                 onToggleSelect={handleToggleSelect}
+                onSelectAll={handleSelectAll}
                 onDelete={handleDelete}
               />
 

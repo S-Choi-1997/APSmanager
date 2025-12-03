@@ -8,7 +8,7 @@
 .consultation-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 15px;
   table-layout: fixed;
 }
 
@@ -17,14 +17,24 @@
   border-bottom: 2px solid #dee2e6;
 }
 
+.consultation-table thead th:not(:last-child) {
+  border-right: 1px solid #e5e7eb;
+}
+
 .consultation-table th {
-  padding: 16px 20px;
-  text-align: left;
+  padding: 10px 10px;
+  text-align: center;
   font-weight: 600;
   color: #495057;
-  font-size: 13px;
+  font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  line-height: 24px;
+}
+
+.consultation-table th,
+.consultation-table td {
+  vertical-align: middle;
 }
 
 .consultation-table tbody tr {
@@ -47,41 +57,24 @@
 }
 
 .consultation-table td {
-  padding: 16px 20px;
+  padding: 10px 10px;
   color: #212529;
+  text-align: center;
+  line-height: 24px;
 }
 
-.select-col {
-  width: 56px;
+.consultation-table td:not(:last-child) {
+  border-right: 1px solid #f1f3f4;
 }
 
-.number-col {
-  width: 72px;
-}
-
-.type-col {
-  width: 140px;
-}
-
-.name-col {
-  width: 140px;
-}
-
-.contact-col {
-  width: 240px;
-}
-
-.date-col {
-  width: 150px;
-}
-
-.action-col {
-  width: 120px;
-}
-
-.delete-col {
-  width: 100px;
-}
+col.select-col { width: 40px; }
+col.number-col { width: 35px; }
+col.type-col { width: 85px; }
+col.name-col { width: 80px; }
+col.contact-col { width: 500px; }
+col.content-col { width: 100px; }
+col.date-col { width: 96px; }
+col.action-col { width: 130px; }
 
 .number-cell {
   text-align: center;
@@ -99,16 +92,17 @@
 }
 
 .type-cell {
-  text-align: left;
+  text-align: center;
 }
 
 .contact-cell {
-  padding: 12px 20px !important;
+  padding: 8px 6px !important;
+  text-align: left;
 }
 
 .contact-phone {
   color: #495057;
-  font-size: 13px;
+  font-size: 14px;
   font-family: 'Consolas', 'Monaco', monospace;
   margin-bottom: 4px;
   font-weight: 500;
@@ -120,18 +114,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 200px;
 }
 
 .type-tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 10px;
-  min-width: 88px;
-  max-width: 120px;
+  padding: 5px 8px;
+  min-width: 70px;
+  max-width: 110px;
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   border: 1px solid #e5e7eb;
   background-color: #f6f7fb;
@@ -140,25 +133,42 @@
 
 .date-cell {
   color: #6c757d;
-  font-size: 13px;
+  font-size: 14px;
   font-family: 'Consolas', 'Monaco', monospace;
 }
 
-.action-cell {
+.content-cell {
   text-align: left;
+  font-size: 14px;
+  color: #4b5563;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-.select-cell {
+.action-cell {
   text-align: center;
 }
 
-.select-cell input[type='checkbox'] {
+.select-col,
+.select-cell {
+  text-align: center;
+  vertical-align: middle;
+  line-height: 24px;
+}
+
+.select-cell input[type='checkbox'],
+.select-col input[type='checkbox'] {
   width: 18px;
   height: 18px;
+  margin: 0;
+  vertical-align: middle;
 }
 
 .respond-btn {
-  padding: 8px 20px;
+  padding: 7px 12px;
+  min-width: 54px;
   border: 1px solid transparent;
   border-radius: 6px;
   font-size: 13px;
@@ -199,7 +209,8 @@
 }
 
 .delete-btn {
-  padding: 8px 16px;
+  padding: 7px 11px;
+  min-width: 54px;
   background-color: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecdd3;
@@ -208,6 +219,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .delete-btn:hover {

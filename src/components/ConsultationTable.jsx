@@ -1,4 +1,5 @@
 ﻿import './ConsultationTable.css';
+import { useEffect, useRef } from 'react';
 
 const TYPE_COLORS = ['#2563eb', '#dc2626', '#f59e0b', '#16a34a']; // blue, red, yellow, green
 
@@ -15,7 +16,25 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-function ConsultationTable({ consultations, onRowClick, onRespond, selectedIds, onToggleSelect, onDelete }) {
+function ConsultationTable({ consultations, onRowClick, onRespond, selectedIds, onToggleSelect, onSelectAll, onDelete }) {
+  const headerCheckboxRef = useRef(null);
+
+  const pageIds = consultations.map((c) => c.id);
+  const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds?.has(id));
+  const partiallySelected = !allSelected && pageIds.some((id) => selectedIds?.has(id));
+
+  const getPreview = (text) => {
+    if (!text) return '';
+    const trimmed = String(text).trim();
+    return trimmed.length > 34 ? `${trimmed.slice(0, 34)}…` : trimmed;
+  };
+
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = partiallySelected;
+    }
+  }, [partiallySelected]);
+
   const formatDate = (date) => {
     if (!date) return '';
     const d = date instanceof Date ? date : new Date(date);
@@ -41,29 +60,40 @@ function ConsultationTable({ consultations, onRowClick, onRespond, selectedIds, 
     onDelete(id);
   };
 
+  const handleSelectAll = (e) => {
+    onSelectAll(consultations, e.target.checked);
+  };
+
   return (
     <div className="consultation-table-wrapper">
       <table className="consultation-table">
         <colgroup>
-          <col className="select-col" />
-          <col className="number-col" />
-          <col className="type-col" />
-          <col className="name-col" />
-          <col className="contact-col" />
-          <col className="date-col" />
-          <col className="action-col" />
-          <col className="delete-col" />
+          <col style={{ width: '40px' }} />
+          <col style={{ width: '45px' }} />
+          <col style={{ width: '100px' }} />
+          <col style={{ width: '80px' }} />
+          <col style={{ width: '200px' }} />
+          <col style={{ width: '500px' }} />
+          <col style={{ width: '96px' }} />
+          <col style={{ width: '140px' }} />
         </colgroup>
         <thead>
           <tr>
-            <th className="select-col"></th>
+            <th className="select-col">
+              <input
+                type="checkbox"
+                ref={headerCheckboxRef}
+                checked={allSelected}
+                onChange={handleSelectAll}
+              />
+            </th>
             <th className="number-col">번호</th>
             <th className="type-col">구분</th>
             <th className="name-col">이름</th>
             <th className="contact-col">연락처</th>
+            <th className="content-col">내용</th>
             <th className="date-col">날짜/시간</th>
-            <th className="action-col">확인</th>
-            <th className="delete-col">삭제</th>
+            <th className="action-col">확인/삭제</th>
           </tr>
         </thead>
         <tbody>
@@ -105,19 +135,22 @@ function ConsultationTable({ consultations, onRowClick, onRespond, selectedIds, 
                   <div className="contact-phone">{consultation.phone}</div>
                   <div className="contact-email">{consultation.email}</div>
                 </td>
+                <td className="content-cell content-col" title={consultation.message}>
+                  {getPreview(consultation.message)}
+                </td>
                 <td className="date-cell date-col">{formatDate(consultation.createdAt)}</td>
                 <td className="action-cell action-col">
-                  <button
-                    className={`respond-btn ${isUnread ? 'unread' : 'responded'}`}
-                    onClick={(e) => handleRespond(e, consultation.id, consultation.check)}
-                  >
-                    {isUnread ? '확인' : '확인 완료'}
-                  </button>
-                </td>
-                <td className="delete-cell delete-col">
-                  <button className="delete-btn" onClick={(e) => handleDelete(e, consultation.id)}>
-                    삭제
-                  </button>
+                  <div className="action-buttons">
+                    <button
+                      className={`respond-btn ${isUnread ? 'unread' : 'responded'}`}
+                      onClick={(e) => handleRespond(e, consultation.id, consultation.check)}
+                    >
+                      {isUnread ? '확인' : '완료'}
+                    </button>
+                    <button className="delete-btn" onClick={(e) => handleDelete(e, consultation.id)}>
+                      삭제
+                    </button>
+                  </div>
                 </td>
               </tr>
             );
