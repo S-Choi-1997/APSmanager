@@ -32,7 +32,21 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nfix: Use backend for Naver OAuth token exchange (resolve CORS & security)\n\n- Add /auth/naver/token endpoint in backend for secure token exchange\n- Remove NAVER_CLIENT_SECRET from frontend (security improvement)\n- Update naverAuth.js to call backend API instead of Naver directly\n- Add Naver env vars to GCP deploy script\n- Fixes CORS error and prevents CLIENT_SECRET exposure\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git push:*)",
       "Bash(git ls-tree:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(gcloud functions:*)",
+      "Bash(gcloud compute addresses:*)",
+      "Bash(gcloud compute instances create:*)",
+      "Bash(gcloud compute instances delete-access-config:*)",
+      "Bash(gcloud compute instances add-access-config:*)",
+      "Bash(gcloud compute instances describe:*)",
+      "Bash(gcloud compute ssh:*)",
+      "Bash(gcloud compute scp:*)",
+      "Bash(gh run list:*)",
+      "Bash(git restore:*)",
+      "Bash(gcloud compute instances list:*)",
+      "Bash(Select-String -Pattern \"IP|Error|SMS|aligo\" -Context 1,1)",
+      "Bash(gcloud compute firewall-rules list:*)",
+      "Bash(gcloud compute firewall-rules create:*)"
     ],
     "deny": [],
     "ask": []
