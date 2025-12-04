@@ -7,6 +7,7 @@ import UnauthorizedPage from './components/UnauthorizedPage';
 import SearchBar from './components/SearchBar';
 import ConsultationTable from './components/ConsultationTable';
 import ConsultationModal from './components/ConsultationModal';
+import ConfirmModal from './components/ConfirmModal';
 import Pagination from './components/Pagination';
 import { fetchInquiries, updateInquiry, fetchAttachmentUrls, deleteInquiry } from './services/inquiryService';
 import { sendSMS } from './services/smsService';
@@ -30,6 +31,8 @@ function App() {
   const [attachmentMap, setAttachmentMap] = useState({});
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [consultationToConfirm, setConsultationToConfirm] = useState(null);
 
   const typeFilters = useMemo(() => {
     const dynamic = Array.from(new Set(consultations.map((c) => c.type).filter(Boolean)));
@@ -140,11 +143,23 @@ function App() {
         return;
       }
 
-      // 확인 메시지
-      const confirmMessage = `${consultation.name}님께 확인 문자를 발송하시겠습니까?\n\n전화번호: ${consultation.phone}\n\n※ 한 번 확인하면 취소할 수 없습니다.`;
-      if (!window.confirm(confirmMessage)) {
-        return;
-      }
+      // 모달 열기
+      setConsultationToConfirm(consultation);
+      setConfirmModalOpen(true);
+    } catch (error) {
+      console.error('Failed to prepare confirmation:', error);
+      alert('확인 준비 중 오류가 발생했습니다: ' + error.message);
+    }
+  };
+
+  const handleConfirmSMS = async () => {
+    if (!consultationToConfirm) return;
+
+    const id = consultationToConfirm.id;
+
+    try {
+      setConfirmModalOpen(false);
+      setConsultationToConfirm(null);
 
       // 1. 먼저 상태 업데이트
       await updateInquiry(id, { check: true }, auth);
@@ -153,7 +168,7 @@ function App() {
       try {
         const smsMessage = `[APS Consulting]
 
-${consultation.name}님, 안녕하세요.
+${consultationToConfirm.name}님, 안녕하세요.
 
 문의하신 내용이 확인되었습니다.
 담당자가 곧 연락드리겠습니다.
@@ -161,7 +176,7 @@ ${consultation.name}님, 안녕하세요.
 감사합니다.`;
 
         await sendSMS({
-          receiver: consultation.phone,
+          receiver: consultationToConfirm.phone,
           msg: smsMessage,
         }, auth);
 
@@ -444,6 +459,16 @@ ${consultation.name}님, 안녕하세요.
           onRespond={handleRespond}
         />
       )}
+
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setConsultationToConfirm(null);
+        }}
+        onConfirm={handleConfirmSMS}
+        consultation={consultationToConfirm}
+      />
     </div>
   );
 }

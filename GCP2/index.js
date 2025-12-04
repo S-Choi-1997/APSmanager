@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const admin = require("firebase-admin");
-const { HttpsProxyAgent } = require("https-proxy-agent");
 
 // Initialize Firebase Admin
 admin.initializeApp({
@@ -550,43 +549,30 @@ app.post("/sms/send", authenticate, async (req, res) => {
       });
     }
 
-    // Prepare form data for Aligo API
-    const formData = new URLSearchParams({
+    // Call SMS relay server (VM with fixed IP)
+    const RELAY_URL = process.env.RELAY_URL || 'http://136.113.67.193:3000';
+    console.log(`Sending SMS via relay: ${RELAY_URL}/sms/send`);
+
+    const relayPayload = {
       key: ALIGO_API_KEY,
       user_id: ALIGO_USER_ID,
       sender: ALIGO_SENDER,
-      receiver: receiver, // Can be comma-separated for multiple recipients
+      receiver: receiver,
       msg: msg,
-    });
-
-    // Add optional parameters
-    if (msg_type) {
-      formData.append('msg_type', msg_type); // SMS, LMS, or MMS
-    }
-    if (title) {
-      formData.append('title', title); // Title for LMS/MMS
-    }
-    if (testmode_yn) {
-      formData.append('testmode_yn', testmode_yn); // Y for test mode
-    }
-
-    // Call Aligo API through proxy
-    const PROXY_URL = process.env.PROXY_URL;
-    const fetchOptions = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData,
     };
 
-    // Add proxy agent if PROXY_URL is configured
-    if (PROXY_URL) {
-      fetchOptions.agent = new HttpsProxyAgent(PROXY_URL);
-      console.log(`Using proxy: ${PROXY_URL}`);
-    }
+    // Add optional parameters
+    if (msg_type) relayPayload.msg_type = msg_type;
+    if (title) relayPayload.title = title;
+    if (testmode_yn) relayPayload.testmode_yn = testmode_yn;
 
-    const aligoResponse = await fetch('https://apis.aligo.in/send/', fetchOptions);
+    const aligoResponse = await fetch(`${RELAY_URL}/sms/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(relayPayload),
+    });
 
     if (!aligoResponse.ok) {
       const errorText = await aligoResponse.text();
