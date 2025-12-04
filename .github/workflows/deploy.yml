@@ -32,7 +32,7 @@ jobs:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_NAVER_CLIENT_ID: ${{ secrets.VITE_NAVER_CLIENT_ID }}
           VITE_NAVER_CLIENT_SECRET: ${{ secrets.VITE_NAVER_CLIENT_SECRET }}
-          VITE_NAVER_REDIRECT_URI: https://s-choi-1997.github.io/APSmanager/naver-callback.html
+          VITE_NAVER_REDIRECT_URI: https://admin.apsconsulting.kr/naver-callback.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
