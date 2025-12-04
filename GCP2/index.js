@@ -1,3 +1,26 @@
+/**
+ * GCP2 - 백엔드 API (Cloud Run)
+ *
+ * APS Consulting 관리 시스템의 백엔드 API
+ *
+ * 주요 기능:
+ * - Google/Naver OAuth 토큰 검증 및 이메일 기반 접근 제어
+ * - 문의 목록 조회/상세/업데이트/삭제 (Firestore)
+ * - 첨부파일 서명된 URL 발급 (Firebase Storage)
+ * - SMS 발송 (Aligo API via Relay 서버)
+ * - Naver OAuth 토큰 교환
+ *
+ * 환경변수:
+ * - ALLOWED_ORIGINS: CORS 허용 도메인
+ * - ALLOWED_EMAILS: 접근 허용 이메일 목록
+ * - STORAGE_BUCKET: Firebase Storage 버킷
+ * - NAVER_CLIENT_ID, NAVER_CLIENT_SECRET: Naver OAuth
+ * - ALIGO_API_KEY, ALIGO_USER_ID, ALIGO_SENDER_PHONE: Aligo SMS
+ * - RELAY_URL: SMS Relay 서버 주소 (http://136.113.67.193:3000)
+ *
+ * 배포: GCP Cloud Run (https://inquiryapi-mbi34yrklq-uc.a.run.app)
+ */
+
 const express = require("express");
 const cors = require("cors");
 const admin = require("firebase-admin");

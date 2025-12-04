@@ -1,5 +1,113 @@
 # Changelog
 
+## 2025-12-04 - 도메인 전환 및 프로젝트 문서화
+
+### 구현 사항
+
+1. **커스텀 도메인 적용**
+   - 신규 도메인: `https://admin.apsconsulting.kr`
+   - GitHub Pages CNAME 설정
+   - Vite base path 변경 (`/APSmanager/` → `/`)
+   - 모든 OAuth redirect URI 업데이트
+
+2. **SMS 발송 UI/UX 개선**
+   - ConfirmModal: SMS 발송 확인 모달 (아름다운 디자인)
+   - AlertModal: 발송 성공/실패 알림 모달
+   - 확인 완료 버튼: 초록색 + disabled 상태
+   - alert() 대신 모달 사용으로 UX 향상
+
+3. **SMS Relay 서버 안정화**
+   - 고정 IP VM 서버: 136.113.67.193:3000
+   - systemd 서비스로 자동 실행
+   - Aligo API 화이트리스트 등록 완료
+   - TinyProxy 방식 폐기 → Relay 서버로 전환
+
+4. **프로젝트 문서화**
+   - README.md: 프로젝트 전체 개요 (기술 스택, 아키텍처)
+   - GCP2/README.md: 백엔드 API 문서 (엔드포인트, 배포, 환경변수)
+   - GCP3/README.md: SMS Relay 서버 문서 (배포, 관리, 트러블슈팅)
+   - 각 주요 파일에 헤더 주석 추가 (GCP2/index.js, GCP3/sms-relay/index.js, src/App.jsx)
+   - 폐기 파일 정리 (GCP → GCP.DEPRECATED, GCP3/DEPRECATED.txt)
+
+### 주요 변경 사항
+
+#### 도메인 및 URL 변경
+**기존:**
+- Frontend: `https://s-choi-1997.github.io/APSmanager/`
+- Base path: `/APSmanager/`
+
+**변경:**
+- Frontend: `https://admin.apsconsulting.kr`
+- Base path: `/`
+- CNAME: `admin.apsconsulting.kr`
+
+#### SMS 아키텍처 변경
+**기존 (폐기):**
+```
+Cloud Run → TinyProxy (VM) → Aligo API
+```
+
+**변경:**
+```
+Cloud Run → SMS Relay (VM:3000) → Aligo API
+```
+
+- 환경변수: `PROXY_URL` → `RELAY_URL`
+- Relay 엔드포인트: `POST /sms/send`
+- VM IP: 136.113.67.193 (고정)
+
+#### 환경변수 수정
+- `GCP2/.env`: RELAY_URL, ALLOWED_ORIGINS 업데이트
+- `.env.production`: VITE_NAVER_REDIRECT_URI 업데이트
+- `.github/workflows/deploy.yml`: Naver redirect URI 업데이트
+
+### UI/UX 개선
+
+1. **모달 컴포넌트**
+   - `ConfirmModal.jsx`: SMS 발송 확인 (이름, 전화번호, 경고 메시지)
+   - `AlertModal.jsx`: 알림 모달 (success, error, warning, info)
+   - 애니메이션: fadeIn, slideUp
+   - 모바일 반응형 디자인
+
+2. **버튼 상태 개선**
+   - 확인 완료 버튼: 파란색 → 초록색
+   - disabled 속성 추가 (클릭 불가)
+   - 호버 효과 제거 (disabled 상태)
+
+### 파일 정리
+
+**폐기:**
+- `GCP/` → `GCP.DEPRECATED/` (Firebase Functions 기반 구버전)
+- `GCP3/tinyproxy.conf` (TinyProxy 사용 안 함)
+- `GCP3/setup-tinyproxy.sh` (TinyProxy 사용 안 함)
+- `GCP3/allocate-static-ip.sh` (이미 완료)
+- `GCP3/setup-firewall.sh` (이미 완료)
+- `GCP3/setup-all.ps1` (사용 안 함)
+
+**현재 사용:**
+- `GCP2/`: 백엔드 API (Cloud Run)
+- `GCP3/sms-relay/`: SMS Relay 서버
+- `src/`: 프론트엔드 React 앱
+
+### 기술 부채 해결
+
+1. 환경변수 타입 오류 수정
+   - 전화번호를 문자열로 강제 (`"0317011663"`)
+   - deploy.ps1에서 모든 환경변수 quoting
+
+2. Naver OAuth 이메일 권한 확인
+   - "연락처 이메일 주소" 권한만 필요 (1개)
+   - API 응답: `email` 필드 하나만 반환
+
+### 배포 URL (업데이트)
+
+- **Frontend**: https://admin.apsconsulting.kr
+- **Backend**: https://inquiryapi-mbi34yrklq-uc.a.run.app
+- **SMS Relay**: http://136.113.67.193:3000
+- **Naver Callback**: https://admin.apsconsulting.kr/naver-callback.html
+
+---
+
 ## 2025-12-03 - Naver OAuth 통합 및 배포 자동화
 
 ### 구현 사항

@@ -1,3 +1,29 @@
+/**
+ * SMS Relay 서버 (GCP3/sms-relay/)
+ *
+ * 알리고 SMS API의 고정 IP 화이트리스트 요구사항을 충족하기 위한 Relay 서버
+ *
+ * 서버 정보:
+ * - VM: aligo-proxy (GCP Compute Engine, us-central1-a)
+ * - 고정 IP: 136.113.67.193
+ * - 포트: 3000
+ * - 비용: 프리티어 ($0/월)
+ *
+ * 기능:
+ * - GCP2 백엔드로부터 SMS 발송 요청을 받아 Aligo API로 전달
+ * - 고정 IP를 통해 Aligo API에 접근 (IP 화이트리스트 통과)
+ *
+ * 엔드포인트:
+ * - GET /health - 헬스 체크
+ * - POST /sms/send - SMS 발송 (Aligo API로 릴레이)
+ *
+ * 배포:
+ * - VM에 직접 배포 (install.sh 사용)
+ * - systemd 서비스로 실행 (sms-relay.service)
+ *
+ * 사용처: GCP2 백엔드 (index.js의 SMS 발송 기능)
+ */
+
 const express = require('express');
 const fetch = require('node-fetch');
 

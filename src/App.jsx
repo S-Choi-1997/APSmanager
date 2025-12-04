@@ -1,4 +1,29 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+﻿/**
+ * App.jsx - APS Consulting 관리 시스템 메인 컴포넌트
+ *
+ * 프론트엔드 메인 앱 (React 18)
+ *
+ * 주요 기능:
+ * - Google/Naver OAuth 로그인 (authManager.js)
+ * - 이메일 기반 접근 제어 (백엔드에서 검증)
+ * - 문의 목록 조회/검색/필터링
+ * - 문의 상세 보기 (모달)
+ * - SMS 자동 발송 (확인 버튼 클릭 시)
+ * - 첨부파일 다운로드/미리보기
+ * - 일괄 선택/삭제
+ *
+ * 상태 관리:
+ * - user: 로그인 사용자 정보
+ * - consultations: 전체 문의 목록
+ * - filteredConsultations: 필터링된 문의 목록
+ * - selectedConsultation: 선택된 문의 (모달용)
+ * - confirmModalOpen/alertModal: SMS 발송 모달 상태
+ *
+ * 배포: GitHub Pages (https://admin.apsconsulting.kr)
+ * 백엔드: GCP2 (https://inquiryapi-mbi34yrklq-uc.a.run.app)
+ */
+
+import { useEffect, useMemo, useState } from 'react';
 import { auth, onAuthStateChanged } from './auth/authManager';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -76,6 +101,15 @@ function App() {
         setSelectedIds(new Set());
       } catch (error) {
         console.error('Failed to fetch inquiries:', error);
+
+        // Check if it's a token error (401) - expired or invalid token
+        if (error.message.includes('Invalid or expired token') ||
+            error.message.includes('unauthorized') ||
+            error.message.includes('Invalid token')) {
+          setLoading(false);
+          auth.signOut(); // Clear session
+          return; // Don't show alert, just redirect to login
+        }
 
         // Check if it's an unauthorized email error (403)
         if (error.message.includes('Access denied') ||
@@ -168,14 +202,10 @@ function App() {
 
       // 2. SMS 발송
       try {
-        const smsMessage = `[APS Consulting]
+        const smsMessage = `[APS 컨설팅]
 
-${consultationToConfirm.name}님, 안녕하세요.
-
-문의하신 내용이 확인되었습니다.
-담당자가 곧 연락드리겠습니다.
-
-감사합니다.`;
+${consultationToConfirm.name}님의 문의가 확인되었습니다.
+담당자가 곧 연락드리겠습니다.`;
 
         await sendSMS({
           receiver: consultationToConfirm.phone,
