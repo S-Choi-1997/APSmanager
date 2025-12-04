@@ -8,6 +8,7 @@ import SearchBar from './components/SearchBar';
 import ConsultationTable from './components/ConsultationTable';
 import ConsultationModal from './components/ConsultationModal';
 import ConfirmModal from './components/ConfirmModal';
+import AlertModal from './components/AlertModal';
 import Pagination from './components/Pagination';
 import { fetchInquiries, updateInquiry, fetchAttachmentUrls, deleteInquiry } from './services/inquiryService';
 import { sendSMS } from './services/smsService';
@@ -33,6 +34,7 @@ function App() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [consultationToConfirm, setConsultationToConfirm] = useState(null);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, type: 'success', title: '', message: '' });
 
   const typeFilters = useMemo(() => {
     const dynamic = Array.from(new Set(consultations.map((c) => c.type).filter(Boolean)));
@@ -189,17 +191,32 @@ ${consultationToConfirm.name}님, 안녕하세요.
           prev && prev.id === id ? { ...prev, check: true } : prev
         );
 
-        alert('확인 완료 및 문자가 발송되었습니다.');
+        setAlertModal({
+          isOpen: true,
+          type: 'success',
+          title: '발송 완료',
+          message: '확인 완료 및 문자가 발송되었습니다.'
+        });
       } catch (smsError) {
         console.error('SMS 발송 실패:', smsError);
 
         // SMS 실패 시 상태를 되돌림
         try {
           await updateInquiry(id, { check: false }, auth);
-          alert('문자 발송에 실패했습니다. 상태가 되돌려졌습니다.\n\n' + smsError.message);
+          setAlertModal({
+            isOpen: true,
+            type: 'error',
+            title: '발송 실패',
+            message: `문자 발송에 실패했습니다. 상태가 되돌려졌습니다.\n\n${smsError.message}`
+          });
         } catch (rollbackError) {
           console.error('상태 롤백 실패:', rollbackError);
-          alert('문자 발송 및 상태 되돌리기에 실패했습니다. 페이지를 새로고침해주세요.');
+          setAlertModal({
+            isOpen: true,
+            type: 'error',
+            title: '오류 발생',
+            message: '문자 발송 및 상태 되돌리기에 실패했습니다. 페이지를 새로고침해주세요.'
+          });
         }
       }
     } catch (error) {
@@ -468,6 +485,14 @@ ${consultationToConfirm.name}님, 안녕하세요.
         }}
         onConfirm={handleConfirmSMS}
         consultation={consultationToConfirm}
+      />
+
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
       />
     </div>
   );
