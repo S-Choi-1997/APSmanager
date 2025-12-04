@@ -189,15 +189,34 @@ col.action-col { width: 130px; }
 }
 
 .respond-btn.responded {
-  background-color: #eef2ff;
-  color: #1e3c72;
-  border-color: #dfe4ff;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-color: #81c784;
 }
 
 .respond-btn.responded:hover {
-  background-color: #e0e7ff;
+  background-color: #c8e6c9;
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(30, 60, 114, 0.25);
+  box-shadow: 0 2px 6px rgba(46, 125, 50, 0.25);
+}
+
+.respond-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.respond-btn.responded:disabled {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-color: #a5d6a7;
+}
+
+.respond-btn.responded:disabled:hover {
+  background-color: #e8f5e9;
+  transform: none;
+  box-shadow: none;
 }
 
 .respond-btn:active {
