@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
  * @returns {Promise<any>}
  */
 export async function apiRequest(endpoint, options = {}, auth) {
+  const startTime = performance.now();
   const url = `${API_BASE_URL}${endpoint}`;
 
   // Get Google OAuth token
@@ -51,15 +52,25 @@ export async function apiRequest(endpoint, options = {}, auth) {
     headers['X-Provider'] = auth.currentUser.provider;
   }
 
+  const fetchStartTime = performance.now();
+  console.log(`[Frontend Performance] Starting fetch to ${endpoint}`);
+
   const response = await fetch(url, {
     ...options,
     headers,
   });
+
+  const fetchEndTime = performance.now();
+  console.log(`[Frontend Performance] Fetch completed in ${(fetchEndTime - fetchStartTime).toFixed(0)}ms`);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'unknown_error' }));
     throw new Error(error.message || `API Error: ${response.status}`);
   }
 
-  return response.json();
+  const result = await response.json();
+  const totalTime = performance.now() - startTime;
+  console.log(`[Frontend Performance] Total apiRequest time: ${totalTime.toFixed(0)}ms`);
+
+  return result;
 }

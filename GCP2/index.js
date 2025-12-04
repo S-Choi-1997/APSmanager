@@ -165,6 +165,7 @@ app.post("/auth/naver/token", async (req, res) => {
 
 // Authentication middleware - verifies OAuth access token based on provider
 const authenticate = async (req, res, next) => {
+  const authStartTime = Date.now();
   try {
     const authHeader = req.headers.authorization;
     const provider = req.headers['x-provider'] || 'google'; // Default to google for backward compatibility
@@ -261,6 +262,9 @@ const authenticate = async (req, res, next) => {
       provider: provider,
     };
 
+    const authDuration = Date.now() - authStartTime;
+    console.log(`[Performance] Authentication (${provider}) took ${authDuration}ms for ${userEmail}`);
+
     next();
   } catch (error) {
     console.error("Authentication error:", error);
@@ -273,6 +277,7 @@ app.use("/inquiries", authenticate);
 
 // GET /inquiries - List all inquiries with optional filtering
 app.get("/inquiries", async (req, res) => {
+  const startTime = Date.now();
   try {
     const { check, status, category, limit = "100", offset = "0" } = req.query;
 
@@ -308,7 +313,10 @@ app.get("/inquiries", async (req, res) => {
 
     query = query.limit(limitNum);
 
+    const queryStartTime = Date.now();
     const snapshot = await query.get();
+    const queryDuration = Date.now() - queryStartTime;
+    console.log(`[Performance] Firestore query took ${queryDuration}ms`);
 
     const inquiries = snapshot.docs.map((doc) => ({
       id: doc.id,
@@ -317,6 +325,9 @@ app.get("/inquiries", async (req, res) => {
       createdAt: doc.data().createdAt?.toDate().toISOString(),
       updatedAt: doc.data().updatedAt?.toDate().toISOString(),
     }));
+
+    const duration = Date.now() - startTime;
+    console.log(`[Performance] GET /inquiries completed in ${duration}ms, returned ${inquiries.length} items`);
 
     res.json({
       status: "ok",

@@ -93,12 +93,20 @@ function App() {
     }
 
     const loadInquiries = async () => {
+      const loadStartTime = performance.now();
+      console.log('[App Performance] Starting to load inquiries...');
       try {
         setLoading(true);
         const data = await fetchInquiries(auth);
+        const fetchDuration = performance.now() - loadStartTime;
+        console.log(`[App Performance] fetchInquiries completed in ${fetchDuration.toFixed(0)}ms`);
+
         setConsultations(data);
         setFilteredConsultations(data);
         setSelectedIds(new Set());
+
+        const totalDuration = performance.now() - loadStartTime;
+        console.log(`[App Performance] Total loadInquiries (including state updates) completed in ${totalDuration.toFixed(0)}ms`);
       } catch (error) {
         console.error('Failed to fetch inquiries:', error);
 
