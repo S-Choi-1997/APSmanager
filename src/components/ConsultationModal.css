@@ -178,23 +178,25 @@
 }
 
 .info-row {
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 24px;
+  display: flex;
+  gap: 32px;
   padding: 14px 0;
   border-bottom: 1px solid #dfe3e8;
 }
 
 .info-label {
-  font-weight: 600;
-  color: #495057;
-  font-size: 15px;
+  flex: 0 0 30%;
+  font-weight: 700;
+  color: #212529;
+  font-size: 16px;
 }
 
 .info-value {
+  flex: 0 1 70%;
   color: #212529;
-  font-size: 16px;
-  word-break: break-all;
+  font-size: 17px;
+  word-break: break-word;
+  padding-right: 20px;
 }
 
 .email-value {
@@ -476,8 +478,17 @@
   }
 
   .info-row {
-    grid-template-columns: 100px 1fr;
-    gap: 16px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .info-label {
+    flex: none;
+  }
+
+  .info-value {
+    flex: none;
+    padding-right: 0;
   }
 
   .modal-footer {
