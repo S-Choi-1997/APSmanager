@@ -51,8 +51,13 @@
   background-color: #fff;
 }
 
+.consultation-table tbody tr.unread .content-cell {
+  font-weight: 600;
+  color: #212529;
+}
+
 .consultation-table tbody tr.read {
-  background-color: #f9fafb;
+  background-color: #ececec;
   opacity: 0.85;
 }
 
@@ -64,7 +69,7 @@
 }
 
 .consultation-table td:not(:last-child) {
-  border-right: 1px solid #f1f3f4;
+  border-right: 1px solid #d1d5db;
 }
 
 col.select-col { width: 40px; }
