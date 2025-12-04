@@ -108,6 +108,7 @@ function ConsultationModal({ consultation, onClose, onRespond, attachments, atta
                 <button
                   className={`modal-respond-btn ${isUnread ? 'primary' : 'secondary'}`}
                   onClick={() => onRespond?.(consultation.id, consultation.check)}
+                  disabled={!isUnread}
                   type="button"
                   title={isUnread ? '확인 시 SMS 자동 발송' : '확인 완료 (문자 발송됨)'}
                 >
