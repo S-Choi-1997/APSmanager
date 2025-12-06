@@ -98,6 +98,12 @@
   margin-bottom: 4px;
 }
 
+.sender-company {
+  font-size: 13px;
+  color: #1a73e8;
+  margin-bottom: 4px;
+}
+
 .sender-email {
   font-size: 14px;
   color: #5f6368;

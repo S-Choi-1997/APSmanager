@@ -206,6 +206,11 @@
   flex-wrap: wrap;
 }
 
+.company-value {
+  color: #1a73e8;
+  font-weight: 600;
+}
+
 .copy-btn {
   padding: 6px 10px;
   border: 1px solid #dfe3e8;

@@ -1,6 +1,10 @@
 import './ConsultationListItem.css';
 
 function ConsultationListItem({ consultation, isSelected, onClick }) {
+  console.log('ConsultationListItem - consultation:', consultation);
+  console.log('Has company?', consultation?.company);
+  console.log('Has phone?', consultation?.phone);
+
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
 
@@ -42,6 +46,22 @@ function ConsultationListItem({ consultation, isSelected, onClick }) {
         </div>
         <span className="item-date">{formatDate(consultation.createdAt)}</span>
       </div>
+
+      <div className="item-info-grid">
+        {consultation.company && (
+          <div className="info-item">
+            <span className="info-label">상호</span>
+            <span className="info-value">{consultation.company}</span>
+          </div>
+        )}
+        {consultation.phone && (
+          <div className="info-item">
+            <span className="info-label">연락처</span>
+            <span className="info-value">{consultation.phone}</span>
+          </div>
+        )}
+      </div>
+
       <div className="item-subject">
         {consultation.subject || consultation.type || '제목 없음'}
       </div>

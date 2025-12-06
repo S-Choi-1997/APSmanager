@@ -44,6 +44,9 @@ function ConsultationDetail({ consultation }) {
         </div>
         <div className="sender-info">
           <div className="sender-name">{consultation.name || '이름 없음'}</div>
+          {consultation.company && (
+            <div className="sender-company">{consultation.company}</div>
+          )}
           {consultation.email && (
             <div className="sender-email">{consultation.email}</div>
           )}

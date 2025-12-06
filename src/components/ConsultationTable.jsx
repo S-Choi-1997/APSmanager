@@ -71,9 +71,10 @@ function ConsultationTable({ consultations, onRowClick, onRespond, selectedIds, 
           <col style={{ width: '40px' }} />
           <col style={{ width: '45px' }} />
           <col style={{ width: '100px' }} />
-          <col style={{ width: '80px' }} />
-          <col style={{ width: '200px' }} />
-          <col style={{ width: '500px' }} />
+          <col style={{ width: '100px' }} />
+          <col style={{ width: '100px' }} />
+          <col style={{ width: '160px' }} />
+          <col style={{ width: '400px' }} />
           <col style={{ width: '96px' }} />
           <col style={{ width: '140px' }} />
         </colgroup>
@@ -90,6 +91,7 @@ function ConsultationTable({ consultations, onRowClick, onRespond, selectedIds, 
             <th className="number-col">번호</th>
             <th className="type-col">구분</th>
             <th className="name-col">이름</th>
+            <th className="company-col">상호</th>
             <th className="contact-col">연락처</th>
             <th className="content-col">내용</th>
             <th className="date-col">날짜/시간</th>
@@ -130,6 +132,9 @@ function ConsultationTable({ consultations, onRowClick, onRespond, selectedIds, 
                 </td>
                 <td className={`name-cell name-col ${isUnread ? 'bold' : ''}`}>
                   {consultation.name}
+                </td>
+                <td className="company-cell company-col">
+                  {consultation.company || '-'}
                 </td>
                 <td className="contact-cell contact-col">
                   <div className="contact-phone">{consultation.phone}</div>

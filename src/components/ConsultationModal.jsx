@@ -127,6 +127,12 @@ function ConsultationModal({ consultation, onClose, onRespond, attachments, atta
                 <span className="info-label">성함</span>
                 <span className="info-value">{consultation.name}</span>
               </div>
+              {consultation.company && (
+                <div className="info-row">
+                  <span className="info-label">상호</span>
+                  <span className="info-value company-value">{consultation.company}</span>
+                </div>
+              )}
               <div className="info-row">
                 <span className="info-label">연락 전화번호</span>
                 <span className="info-value">{consultation.phone}</span>

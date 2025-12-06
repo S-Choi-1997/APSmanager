@@ -37,6 +37,8 @@
   gap: 8px;
   font-size: 14px;
   color: #202124;
+  flex: 1;
+  min-width: 0;
 }
 
 .unread-dot {
@@ -49,6 +51,9 @@
 
 .name-text {
   font-weight: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .item-date {
@@ -90,4 +95,31 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.item-info-grid {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.info-label {
+  color: #5f6368;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.info-value {
+  color: #202124;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
 }
