@@ -21,6 +21,10 @@ release
 # Firebase config (보안을 위해 실제 프로젝트에서는 환경변수 사용 권장)
 # src/firebase/config.js
 
+# GCP backend folders (각각 독립적인 git repo)
+GCP/
+GCP-cleanup/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

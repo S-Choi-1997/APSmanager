@@ -47,7 +47,10 @@
       "Bash(Select-String -Pattern \"IP|Error|SMS|aligo\" -Context 1,1)",
       "Bash(gcloud compute firewall-rules list:*)",
       "Bash(gcloud compute firewall-rules create:*)",
-      "Bash(gcloud compute instances delete:*)"
+      "Bash(gcloud compute instances delete:*)",
+      "Bash(gcloud services list:*)",
+      "Bash(gcloud network-management connectivity-tests list:*)",
+      "Bash(gcloud services disable:*)"
     ],
     "deny": [],
     "ask": []
