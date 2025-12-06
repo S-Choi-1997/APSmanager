@@ -50,7 +50,12 @@
       "Bash(gcloud compute instances delete:*)",
       "Bash(gcloud services list:*)",
       "Bash(gcloud network-management connectivity-tests list:*)",
-      "Bash(gcloud services disable:*)"
+      "Bash(gcloud services disable:*)",
+      "Bash(gcloud scheduler jobs create http:*)",
+      "Bash(gcloud scheduler jobs run:*)",
+      "Bash(node test-insert-dummy.js:*)",
+      "Bash(Select-String -Pattern \"삭제|문서|파일\" -Context 0,1)",
+      "Bash(node test-check-remaining.js:*)"
     ],
     "deny": [],
     "ask": []
